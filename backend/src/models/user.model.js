@@ -37,6 +37,10 @@ class User extends Model {
         defaultValue: "user",
         allowNull: false,
       },
+      stripe_customer_id:{
+        type: DataTypes.STRING,
+        allowNull:true,
+      },
       avatar_url: {
         type: DataTypes.STRING,
       },
@@ -48,7 +52,7 @@ class User extends Model {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      googleId: {
+      google_id: {
         type: DataTypes.STRING,
         allowNull: true,
       },
