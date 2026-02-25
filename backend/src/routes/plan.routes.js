@@ -9,7 +9,7 @@ const router = Router();
 
 router
   .route("/plans")
-  .post(wrapAsync(addSubscriptionPlan))
-  .get(wrapAsync(allSubscriptionPlans));
+  .post( auth(["user"]), wrapAsync(addSubscriptionPlan))
+  .get( auth(["user"]), wrapAsync(allSubscriptionPlans));
 
   export default router;

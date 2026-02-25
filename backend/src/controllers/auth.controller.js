@@ -26,11 +26,11 @@ export const register = async (req, res, next) => {
       },
     });
 
-        user = await User.create({
+    user = await User.create({
       username,
       email,
       password,
-      stripe_customer_id : customer.id,
+      stripe_customer_id: customer.id,
       avatar_url: "",
     });
 
@@ -186,4 +186,67 @@ export const clearUserTokens = wrapAsync(async () => {
   console.log(`Cleared tokens for ${affectedCount} users.`);
 });
 
+export const google = async (req, res, next) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return next(new ExpressError("Missing Google Credentials!", 400));
+  }
 
+  const ticket = await client.verifyIdToken({
+    idToken: credential,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+
+  const { name, email, sub, picture } = payload;
+
+  const [user, created] = await User.findOrCreate({
+    where: { email: email },
+    defaults: {
+      email,
+      username: name,
+      googleId: sub,
+      avatar_url: picture,
+      role: "user",
+    },
+  });
+
+  const token = generateToken(user);
+  user.token = token;
+
+  if (!user.googleId) user.googleId = sub;
+
+  await user.save();
+
+  const notification = `Welcome to SaaS, ${user.username}! 🎉
+
+We’re excited to have you join our community.
+`;
+
+  res.cookie("token", user.token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+  });
+
+  user.password = undefined;
+
+  if (created) {
+    await assignFreePlan(user);
+
+    await sendMail(user.email, "SaaS!", notification);
+
+    return res.status(201).json({
+      message: "Account created successfully via Google!",
+      user,
+      token,
+    });
+  }
+
+  res.status(200).json({
+    message: "Welcome back! You have successfully logged in.",
+    user,
+    token,
+  });
+};
