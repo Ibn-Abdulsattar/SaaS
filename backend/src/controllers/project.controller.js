@@ -5,11 +5,31 @@ import ExpressError from "../utils/expressError.js";
 export const createProject = async (req, res, next) => {
   const { title, description } = req.body;
 
+  let pdf = null;
+
+  const file = req.file;
+
   if (!title || !description) {
     return next(new ExpressError(" title, and description are required", 400));
   }
 
-  const project = await Project.create({ title, description });
+  if (file) {
+    try {
+      const result = await Cloudinary(file);
+
+      pdf = result.secure_url;
+      console.log("pdf_url =", result.secure_url);
+    } catch (err) {
+      return next(new ExpressError("pdf upload failed", 500));
+    }
+  }
+
+  const project = await Project.create({
+    title,
+    description,
+    pdf,
+    user_id: req.user.user_id,
+  });
 
   res.status(201).json({
     success: true,
@@ -50,7 +70,7 @@ export const updateProject = async (req, res, next) => {
   const project = await Project.findByPk(req.params.id);
 
   if (!project) {
-        return next(new ExpressError("Project not found", 404));
+    return next(new ExpressError("Project not found", 404));
   }
 
   const { title, description } = req.body;
@@ -67,10 +87,10 @@ export const deleteProject = async (req, res, next) => {
   const project = await Project.findByPk(req.params.id);
 
   if (!project) {
-        return next(new ExpressError("Project not found", 404));
+    return next(new ExpressError("Project not found", 404));
   }
 
-  await project.destroy(); 
+  await project.destroy();
 
   res.status(200).json({
     success: true,

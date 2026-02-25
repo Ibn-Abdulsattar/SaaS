@@ -8,12 +8,13 @@ import {
 } from "../controllers/project.controller.js";
 import taskRoutes from "./task.routes.js";
 import wrapAsync from "../utils/wrapAsync.js";
+import upload from "../services/upload.js";
 
 const router = Router();
 
 router.use("/:projectId/tasks", taskRoutes);
 
-router.route("/").post(wrapAsync(createProject)).get(wrapAsync(getAllProjects));
+router.route("/").post( upload.single("media"), wrapAsync(createProject)).get(wrapAsync(getAllProjects));
 router
   .route("/:id")
   .get(wrapAsync(getProjectById))

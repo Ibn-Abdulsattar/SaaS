@@ -28,6 +28,10 @@ class Project extends Model {}
         type: DataTypes.ENUM("active", "compeleted", "hold"),
         allowNull: true,
       },
+      pdf:{
+        type: DataTypes.STRING,
+        allowNull: true
+      },
     },
     {
       sequelize,

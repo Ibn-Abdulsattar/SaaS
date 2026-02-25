@@ -2,10 +2,11 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import userRoutes from "./routes/user.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import planRoutes from "./routes/plan.routes.js";
 import projectRoutes from "./routes/project.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 import activityRoutes from "./routes/activity.routes.js"
 import dashboardRoutes from "./routes/dashboard.routes.js"
 import graphicalChartRoutes from "./routes/graphicalChart.routes.js"
@@ -34,13 +35,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Routes
-app.use("/api/auth", userRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/billing", paymentRoutes);
 app.use("/api/billing", planRoutes);
 app.use("/api/project", projectRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/charts", graphicalChartRoutes);
+app.use("/api/profile", profileRoutes);
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "API is healthy" });
 });
