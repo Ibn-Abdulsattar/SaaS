@@ -1,6 +1,7 @@
 import { Task } from "../models/task.model.js";
 import { Project } from "../models/project.model.js";
 import ExpressError from "../utils/expressError.js";
+import { logActivity } from "../services/logActivity.js";
 
 export const createTask = async (req, res, next) => {
   const { projectId } = req.params;
@@ -30,6 +31,13 @@ export const createTask = async (req, res, next) => {
     priority,
     due_date,
   });
+
+    await logActivity(
+    req.user.user_id,     
+    "Created",       
+    "Task",          
+    task.id      
+  );
 
   res.status(201).json({
     success: true,
@@ -110,6 +118,13 @@ export const updateTask = async (req, res, next) => {
     due_date,
   });
 
+    await logActivity(
+    req.user.user_id,     
+    "Updated",       
+    "Task",          
+    id      
+  );
+
   res.status(200).json({
     success: true,
     message: "Task updated successfully",
@@ -126,6 +141,13 @@ export const deleteTask = async (req, res, next) => {
   }
 
   await task.destroy();
+
+  await logActivity(
+    req.user.user_id,     
+    "Delated",       
+    "Task",          
+    id      
+  );
 
   res.status(200).json({
     success: true,

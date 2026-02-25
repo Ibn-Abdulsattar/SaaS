@@ -6,6 +6,9 @@ import userRoutes from "./routes/user.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import planRoutes from "./routes/plan.routes.js";
 import projectRoutes from "./routes/project.routes.js";
+import activityRoutes from "./routes/activity.routes.js"
+import dashboardRoutes from "./routes/dashboard.routes.js"
+import graphicalChartRoutes from "./routes/graphicalChart.routes.js"
 import { stripeWebhook } from "./controllers/payment.controller.js";
 import { User } from "./models/user.model.js";
 import { Payment } from "./models/payment.model.js";
@@ -14,6 +17,7 @@ import { SubscriptionPlan } from "./models/subscriptionPlan.model.js";
 import wrapAsync from "./utils/wrapAsync.js";
 import { Project } from "./models/project.model.js";
 import { Task } from "./models/task.model.js";
+import { Activity } from "./models/activity.model.js";
 dotenv.config();
 const app = express();
 app.set("PORT", process.env.PORT || 5000);
@@ -34,6 +38,9 @@ app.use("/api/auth", userRoutes);
 app.use("/api/billing", paymentRoutes);
 app.use("/api/billing", planRoutes);
 app.use("/api/project", projectRoutes);
+app.use("/api/activities", activityRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/charts", graphicalChartRoutes);
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "API is healthy" });
 });
@@ -56,6 +63,9 @@ Project.hasMany(Task, {
   onDelete: "CASCADE",
 });
 Task.belongsTo(Project, { foreignKey: "project_id", as: "project" });
+User.hasMany(Activity, { foreignKey: "user_id", as: "activities" });
+Activity.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
 
 app.use((error, req, res, next) => {
   console.error(error);
