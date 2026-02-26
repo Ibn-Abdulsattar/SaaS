@@ -1,5 +1,6 @@
 import { Project } from "../models/project.model.js";
 import { Task } from "../models/task.model.js";
+import Cloudinary from "../utils/cloudinary.js";
 import ExpressError from "../utils/expressError.js";
 
 export const createProject = async (req, res, next) => {

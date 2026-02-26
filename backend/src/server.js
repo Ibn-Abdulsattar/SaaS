@@ -11,11 +11,11 @@ async function startApp() {
     await connectDB();
     app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
     console.log("CORS Origin:", process.env.FRONTEND_URL);
-    startCronJobs();
+    // startCronJobs();
   } catch (err) {
     console.error("💥 Shutdown: DB connection failed", err);
     process.exit(1);
-    stopCronJobs();
+    // stopCronJobs();
   }
 }
 

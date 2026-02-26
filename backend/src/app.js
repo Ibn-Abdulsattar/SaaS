@@ -20,9 +20,17 @@ import wrapAsync from "./utils/wrapAsync.js";
 import { Project } from "./models/project.model.js";
 import { Task } from "./models/task.model.js";
 import { Activity } from "./models/activity.model.js";
+import {v2 as cloudinary} from "cloudinary";
 dotenv.config();
 const app = express();
 app.set("PORT", process.env.PORT || 5000);
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true 
+});
 
 app.use(cors({ origin: [process.env.FRONTEND_URL], credentials: true }));
 app.post(
