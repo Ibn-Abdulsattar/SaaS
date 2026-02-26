@@ -2,6 +2,7 @@ import { Task } from "../models/task.model.js";
 import { Project } from "../models/project.model.js";
 import ExpressError from "../utils/expressError.js";
 import { logActivity } from "../services/logActivity.js";
+import { Op } from "sequelize";
 
 export const createTask = async (req, res, next) => {
   const { projectId } = req.params;
@@ -32,12 +33,7 @@ export const createTask = async (req, res, next) => {
     due_date,
   });
 
-    await logActivity(
-    req.user.user_id,     
-    "Created",       
-    "Task",          
-    task.id      
-  );
+  await logActivity(req.user.user_id, "Created", "Task", task.id);
 
   res.status(201).json({
     success: true,
@@ -66,15 +62,15 @@ export const getTasksByProject = async (req, res, next) => {
 
   const todayDate = new Date();
 
-  const updatedTasks = tasks.map(task=>{
-    const isOverDue =  new Date(task.due_date) < todayDate  && task.status !== "compeleted";
+  const updatedTasks = tasks.map((task) => {
+    const isOverDue =
+      new Date(task.due_date) < todayDate && task.status !== "compeleted";
 
     return {
       ...task,
-      isOverDue
-    }
-     
-  })
+      isOverDue,
+    };
+  });
 
   res.status(200).json({
     success: true,
@@ -118,12 +114,7 @@ export const updateTask = async (req, res, next) => {
     due_date,
   });
 
-    await logActivity(
-    req.user.user_id,     
-    "Updated",       
-    "Task",          
-    id      
-  );
+  await logActivity(req.user.user_id, "Updated", "Task", id);
 
   res.status(200).json({
     success: true,
@@ -142,15 +133,53 @@ export const deleteTask = async (req, res, next) => {
 
   await task.destroy();
 
-  await logActivity(
-    req.user.user_id,     
-    "Delated",       
-    "Task",          
-    id      
-  );
+  await logActivity(req.user.user_id, "Delated", "Task", id);
 
   res.status(200).json({
     success: true,
     message: "Task deleted successfully",
+  });
+};
+
+export const getFilteredTasks = async (req, res, next) => {
+  const {
+    status,
+    priority,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 10,
+  } = req.query;
+
+  const whereClause = {};
+
+  if (status) {
+    whereClause.status = status;
+  }
+
+  if (priority) {
+    whereClause.priority = priority;
+  }
+
+  if (startDate && endDate) {
+    whereClause.created_at = {
+      [Op.between]: [new Date(startDate), new Date(endDate)],
+    };
+  }
+
+  const offset = (page - 1) * 10;
+
+  const [count, rows] = await Task.findAndCountAll({
+    where: whereClause,
+    offset: offset,
+    limit: parseInt(limit),
+    order: [["created_at", "DESC"]],
+  });
+
+  return res.json({
+    total: count,
+    tasks: rows,
+    currentPage: parseInt(page),
+    totalPages: Math.ceil(count / limit)
   });
 };

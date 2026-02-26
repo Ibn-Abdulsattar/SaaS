@@ -8,7 +8,7 @@ class Activity extends Model {}
     {
       id: {
         type: DataTypes.UUID,
-        defaultValue: UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
       user_id: {

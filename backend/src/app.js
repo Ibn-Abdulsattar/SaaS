@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 import planRoutes from "./routes/plan.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
@@ -43,6 +44,7 @@ app.use("/api/activities", activityRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/charts", graphicalChartRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/search", searchRoutes);
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "API is healthy" });
 });

@@ -1,4 +1,4 @@
-import { Model, DataTypes, UUIDV4 } from "sequelize";
+import { Model, DataTypes,  } from "sequelize";
 import { sequelize } from "../config/db.js";
 
 class Project extends Model {}
@@ -8,7 +8,7 @@ class Project extends Model {}
     {
       id: {
         type: DataTypes.UUID,
-        defaultValue: UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
       user_id: {

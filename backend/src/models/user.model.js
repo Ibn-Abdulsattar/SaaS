@@ -85,6 +85,10 @@ class User extends Model {
           fields: ["google_id"],
           name: "user_google_unique",
         },
+        {
+          fields: ["username"],
+          name: "user_username_idx"
+        }
       ],
       hooks: {
         beforeValidate: (user) => {

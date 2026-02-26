@@ -62,6 +62,10 @@ class Task extends Model {}
           fields: ["priority"],
           name: "idx_tasks_priority",
         },
+        {
+          fields: ["created_at"],
+          name: "idx_task_created_at"
+        }
       ],
     },
   );
