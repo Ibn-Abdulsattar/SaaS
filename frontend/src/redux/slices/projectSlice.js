@@ -12,7 +12,7 @@ export const fetchProjects = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error);
+      return rejectWithValue(error.response?.data?.message);
     }
   },
 );
@@ -26,7 +26,7 @@ export const createProject = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Upload failed");
+      return rejectWithValue(error.response?.data?.message || "Upload failed");
     }
   },
 );
@@ -40,7 +40,7 @@ export const updateProject = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error);
+      return rejectWithValue(error.response?.data?.message);
     }
   },
 );
@@ -54,7 +54,7 @@ export const deleteProject = createAsyncThunk(
       });
       return id;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error);
+      return rejectWithValue(error.response?.data?.message);
     }
   },
 );
