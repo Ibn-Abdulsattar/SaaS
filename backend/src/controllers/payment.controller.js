@@ -8,6 +8,8 @@ import { User } from "../models/user.model.js";
 import { Subscription } from "../models/subscription.model.js";
 import { SubscriptionPlan } from "../models/subscriptionPlan.model.js";
 import ExpressError from "../utils/expressError.js";
+import { logActivity } from "../services/logActivity.js";
+
 
 export const stripeCheckoutSession = async (req, res, next) => {
   const { planType, billingInterval } = req.body;
@@ -126,7 +128,7 @@ export const stripeWebhook = async (req, res, next) => {
         return res.status(202).json({ message: "Processing dependency..." });
       }
 
-      await Payment.create({
+      const payment = await Payment.create({
         user_id: subscription.user_id,
         stripe_invoice_id: invoice.id,
         amount: invoice.amount_paid / 100,
@@ -135,6 +137,9 @@ export const stripeWebhook = async (req, res, next) => {
         paid_at: new Date(invoice.status_transitions.paid_at * 1000),
         invoice_url: invoiceUrl,
       });
+
+    await logActivity(req.user.user_id, "Deposit", "Payment", payment.id);
+
 
       await Subscription.update(
         {
@@ -224,10 +229,12 @@ export const cancelSubscription = async (req, res, next) => {
     subscription.stripe_subscription_id,
   );
 
-  await Subscription.update(
+  const updatesubscription = await Subscription.update(
     { status: "canceled" },
     { where: { id: subscription.id } },
   );
+
+    await logActivity(req.user.user_id, "Cancel", "Subscription", updatesubscription.id);
 
   res.status(200).json({
     message: "Subscription canceled successfully",

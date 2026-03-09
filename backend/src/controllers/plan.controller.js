@@ -1,4 +1,5 @@
 import { SubscriptionPlan } from "../models/subscriptionPlan.model.js";
+import { logActivity } from "../services/logActivity.js";
 
 const PRICE_MAp = {
   basic: process.env.Basic_Plan_Price_ID,
@@ -18,6 +19,9 @@ export const addSubscriptionPlan = async (req, res, next) => {
       stripe_price_id: PRICE_MAp[planType],
     },
   });
+
+    await logActivity(req.user.user_id, "Created", "Plan", plan.id);
+  
 
   return res.status(201).json({ created, plan });
 };

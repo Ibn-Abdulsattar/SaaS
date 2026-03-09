@@ -2,6 +2,7 @@ import { Project } from "../models/project.model.js";
 import { Task } from "../models/task.model.js";
 import Cloudinary from "../utils/cloudinary.js";
 import ExpressError from "../utils/expressError.js";
+import { logActivity } from "../services/logActivity.js";
 
 export const createProject = async (req, res, next) => {
   const { title, description } = req.body;
@@ -31,6 +32,8 @@ export const createProject = async (req, res, next) => {
     pdf,
     user_id: req.user.user_id,
   });
+
+  await logActivity(req.user.user_id, "Created", "Project", project.id);
 
   res.status(201).json({
     success: true,
@@ -77,6 +80,8 @@ export const updateProject = async (req, res, next) => {
   const { title, description } = req.body;
   await project.update({ title, description });
 
+  await logActivity(req.user.user_id, "Updated", "Project", project.id);
+
   res.status(200).json({
     success: true,
     message: "Project updated successfully",
@@ -92,6 +97,9 @@ export const deleteProject = async (req, res, next) => {
   }
 
   await project.destroy();
+
+  await logActivity(req.user.user_id, "Deleted", "Project", project.id);
+
 
   res.status(200).json({
     success: true,

@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import Cloudinary from "../utils/cloudinary.js";
 import ExpressError from "../utils/expressError.js";
+import { logActivity } from "../services/logActivity.js";
 
 export const profile = async (req, res, next) => {
   const { user } = req;
@@ -40,6 +41,9 @@ export const updateProfile = async (req, res, next) => {
       plain: true,
     },
   );
+
+  await logActivity(req.user.user_id, "Updated", "Profile", updatedUser.user_id);
+
 
   if (rowsAffected === 0) {
     return next(new ExpressError( "User not found or no changes made", 404));
