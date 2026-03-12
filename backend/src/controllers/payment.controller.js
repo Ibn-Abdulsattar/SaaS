@@ -10,7 +10,6 @@ import { SubscriptionPlan } from "../models/subscriptionPlan.model.js";
 import ExpressError from "../utils/expressError.js";
 import { logActivity } from "../services/logActivity.js";
 
-
 export const stripeCheckoutSession = async (req, res, next) => {
   const { planType, billingInterval } = req.body;
 

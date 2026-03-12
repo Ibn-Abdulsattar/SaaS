@@ -87,7 +87,7 @@ src/
 
 ---
 
-## ⚙️ Environment Variables
+##  Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
 
@@ -125,7 +125,7 @@ SMTP_PASS=your_email_password
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -162,7 +162,7 @@ npm run dev
 
 ---
 
-## 📡 API Reference
+##  API Reference
 
 ### Base URL
 ```
@@ -176,28 +176,28 @@ GET /api/health
 
 ---
 
-### 🔐 Auth  `/api/auth`
+###  Auth  `/api/auth`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/register` | ❌ | Register a new user |
-| POST | `/login` | ❌ | Login with email/password |
-| POST | `/logout` | ✅ | Logout current user |
-| POST | `/forgot` | ❌ | Send password reset email |
-| POST | `/reset-password` | ❌ | Reset password with token |
-| POST | `/google` | ❌ | Google OAuth login |
+| POST | `/register` |  | Register a new user |
+| POST | `/login` |  | Login with email/password |
+| POST | `/logout` |  | Logout current user |
+| POST | `/forgot` |  | Send password reset email |
+| POST | `/reset-password` |  | Reset password with token |
+| POST | `/google` |  | Google OAuth login |
 
 ---
 
-### 💳 Billing  `/api/billing`
+###  Billing  `/api/billing`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/history` | ✅ | Get user payment history |
-| GET | `/subscription` | ✅ | Get current subscription status |
-| POST | `/checkout` | ✅ | Create a Stripe checkout session |
-| GET | `/plans` | ✅ | List all subscription plans |
-| POST | `/plans` | ✅ | Add a new subscription plan |
+| GET | `/history` |  | Get user payment history |
+| GET | `/subscription` |  | Get current subscription status |
+| POST | `/checkout` |  | Create a Stripe checkout session |
+| GET | `/plans` |  | List all subscription plans |
+| POST | `/plans` |  | Add a new subscription plan |
 
 #### Stripe Webhook
 ```
@@ -207,75 +207,75 @@ Receives raw Stripe events (no JSON middleware). Must be configured in your Stri
 
 ---
 
-### 📂 Projects  `/api/project`
+###  Projects  `/api/project`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/` | ✅ | Create a new project (supports image upload) |
-| GET | `/` | ✅ | Get all projects for the authenticated user |
-| GET | `/:id` | ✅ | Get a single project by ID |
-| PUT | `/:id` | ✅ | Update a project |
-| DELETE | `/:id` | ✅ | Delete a project |
+| POST | `/` |  | Create a new project (supports image upload) |
+| GET | `/` |  | Get all projects for the authenticated user |
+| GET | `/:id` |  | Get a single project by ID |
+| PUT | `/:id` |  | Update a project |
+| DELETE | `/:id` |  | Delete a project |
 
 ---
 
-### ✅ Tasks  `/api/project/:projectId/tasks`
+###  Tasks  `/api/project/:projectId/tasks`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/` | ✅ | Create a task in a project |
-| GET | `/` | ❌ | Get all tasks for a project |
-| GET | `/:id` | ✅ | Get a single task |
-| PUT | `/:id` | ✅ | Update a task |
-| DELETE | `/:id` | ✅ | Delete a task |
+| POST | `/` |  | Create a task in a project |
+| GET | `/` |  | Get all tasks for a project |
+| GET | `/:id` |  | Get a single task |
+| PUT | `/:id` |  | Update a task |
+| DELETE | `/:id` |  | Delete a task |
 
 ---
 
-### 🔍 Search  `/api/search`
+###  Search  `/api/search`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/global` | ✅ | Global search across resources |
-| GET | `/task` | ✅ | Filtered task search |
+| GET | `/global` |  | Global search across resources |
+| GET | `/task` |  | Filtered task search |
 
 ---
 
-### 📊 Dashboard  `/api/dashboard`
+###  Dashboard  `/api/dashboard`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/stats` | ✅ | Get summary statistics |
+| GET | `/stats` |  | Get summary statistics |
 
 ---
 
-### 📈 Charts  `/api/charts`
+###  Charts  `/api/charts`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/revenue` | ✅ | Monthly revenue data |
-| GET | `/task` | ✅ | Task status statistics |
-| GET | `/growth` | ✅ | User growth over time |
+| GET | `/revenue` |  | Monthly revenue data |
+| GET | `/task` |  | Task status statistics |
+| GET | `/growth` |  | User growth over time |
 
 ---
 
-### 🕓 Activities  `/api/activities`
+###  Activities  `/api/activities`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/` | ✅ | Get recent user activities |
+| GET | `/` |  | Get recent user activities |
 
 ---
 
-### 👤 Profile  `/api/profile`
+###  Profile  `/api/profile`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/me` | ✅ | Get current user profile |
-| PUT | `/me` | ✅ | Update profile (supports image upload) |
+| GET | `/me` |  | Get current user profile |
+| PUT | `/me` |  | Update profile (supports image upload) |
 
 ---
 
-## 🔒 Authentication
+##  Authentication
 
 All protected routes require a valid JWT token. The token is stored in an HTTP-only cookie after login.
 
@@ -283,7 +283,7 @@ The `auth` middleware supports role-based access control. Roles currently in use
 
 ---
 
-## 🗄 Database Models & Associations
+##  Database Models & Associations
 
 ```
 User ──< Payment
@@ -296,7 +296,7 @@ All associations are managed via Sequelize in `server.js`.
 
 ---
 
-## 🧰 Error Handling
+##  Error Handling
 
 All route handlers are wrapped with `wrapAsync` to forward errors to the global error handler. The global handler returns:
 
@@ -309,7 +309,7 @@ All route handlers are wrapped with `wrapAsync` to forward errors to the global 
 
 ---
 
-## 📦 Deployment
+##  Deployment
 
 For production deployment with PM2:
 
