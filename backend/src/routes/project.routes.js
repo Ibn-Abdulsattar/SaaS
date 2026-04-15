@@ -5,6 +5,7 @@ import {
   getProjectById,
   updateProject,
   deleteProject,
+  assignProjectToTeam,
 } from "../controllers/project.controller.js";
 import taskRoutes from "./task.routes.js";
 import wrapAsync from "../utils/wrapAsync.js";
@@ -46,5 +47,8 @@ router
     validateRequest("Project"),
     wrapAsync(deleteProject),
   );
+router
+  .route("/:id/assign-team")
+  .post(auth(["user"]), wrapAsync(assignProjectToTeam));
 
 export default router;

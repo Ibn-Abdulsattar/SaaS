@@ -11,6 +11,7 @@ import profileRoutes from "./routes/profile.routes.js";
 import activityRoutes from "./routes/activity.routes.js"
 import dashboardRoutes from "./routes/dashboard.routes.js"
 import graphicalChartRoutes from "./routes/graphicalChart.routes.js"
+import teamRoutes from "./routes/team.routes.js"
 import { stripeWebhook } from "./controllers/payment.controller.js";
 import { User } from "./models/user.model.js";
 import { Payment } from "./models/payment.model.js";
@@ -21,6 +22,7 @@ import { Project } from "./models/project.model.js";
 import { Task } from "./models/task.model.js";
 import { Activity } from "./models/activity.model.js";
 import {v2 as cloudinary} from "cloudinary";
+import { Team } from "./models/team.model.js";
 dotenv.config();
 const app = express();
 app.set("PORT", process.env.PORT || 5000);
@@ -53,6 +55,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/charts", graphicalChartRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/teams", teamRoutes);
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "API is healthy" });
 });
@@ -77,6 +80,11 @@ Project.hasMany(Task, {
 Task.belongsTo(Project, { foreignKey: "project_id", as: "project" });
 User.hasMany(Activity, { foreignKey: "user_id", as: "activities" });
 Activity.belongsTo(User, { foreignKey: "user_id", as: "user" });
+Team.belongsToMany(User, {through: "team_members", foreignKey: "teamId", as: "users"});
+User.belongsToMany(Team, {through: "team_members", foreignKey: "userId", as: "teams"});
+Team.hasMany(Project, {foreignKey: "teamId", as: "projects"});
+Project.belongsTo(Team, {foreignKey: "teamId", as: "team"});
+
 
 
 app.use((error, req, res, next) => {

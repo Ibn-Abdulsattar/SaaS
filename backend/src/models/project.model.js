@@ -1,4 +1,4 @@
-import { Model, DataTypes,  } from "sequelize";
+import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 
 class Project extends Model {}
@@ -12,10 +12,10 @@ class Project extends Model {}
         primaryKey: true,
       },
       user_id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: { model: "users", key: "user_id" }
-    },
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: { model: "users", key: "user_id" },
+      },
       title: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -28,9 +28,21 @@ class Project extends Model {}
         type: DataTypes.ENUM("active", "compeleted", "hold"),
         allowNull: true,
       },
-      pdf:{
+      pdf: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+      },
+      deadline: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      teamId: {
+        type: DataTypes.UUID,
+        references: {
+          model: "teams",
+          key: "id",
+        },
+        allowNull: true,
       },
     },
     {

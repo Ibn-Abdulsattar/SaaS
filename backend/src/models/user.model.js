@@ -56,6 +56,14 @@ class User extends Model {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      teamId: {
+        type: DataTypes.UUID,
+        references:{
+          model: "teams",
+          key: "id",
+        },
+        allowNull: true,
+      },
       token: {
         type: DataTypes.STRING,
         allowNull: true,

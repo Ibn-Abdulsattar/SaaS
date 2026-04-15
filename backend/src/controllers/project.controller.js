@@ -3,6 +3,7 @@ import { Task } from "../models/task.model.js";
 import Cloudinary from "../utils/cloudinary.js";
 import ExpressError from "../utils/expressError.js";
 import { logActivity } from "../services/logActivity.js";
+import { Team } from "../models/team.model.js";
 
 export const createProject = async (req, res, next) => {
   const { title, description } = req.body;
@@ -104,5 +105,29 @@ export const deleteProject = async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Project and its tasks deleted successfully",
+  });
+};
+
+export const assignProjectToTeam = async(req, res, next)=>{
+      const { teamId } = req.body;
+          const project = await Project.findByPk(req.params.id);
+
+  if (!project) {
+    return next(new ExpressError("Project not found", 404));
+  }
+
+  const team = await Team.findByPk(teamId);
+
+    if (!team) {
+    return next(new ExpressError("Team not found", 404));
+  }
+
+  await project.update({teamId});
+
+  await logActivity(req.user.user_id, "Assigned", "Project", project.id);
+
+  return res.status(200).json({
+    message: "Project assigned to team successfully",
+    data: project,
   });
 };

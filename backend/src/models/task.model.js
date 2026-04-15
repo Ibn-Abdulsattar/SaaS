@@ -1,4 +1,4 @@
-import { Model, DataTypes, UUIDV4 } from "sequelize";
+import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 
 class Task extends Model {}
