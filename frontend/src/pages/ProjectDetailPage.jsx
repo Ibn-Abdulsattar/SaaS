@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import EditDocumentIcon from "@mui/icons-material/EditDocument";
 import {
   Card,
   CardContent,
@@ -29,6 +30,15 @@ import {
   Autocomplete,
   Checkbox,
   Avatar,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  LinearProgress,
+  Box,
+  Divider,
+  CircularProgress,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -39,6 +49,9 @@ import {
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as PendingIcon,
   Schedule as InProgressIcon,
+  CheckBoxOutlineBlank as UncheckedIcon,
+  CheckBox as CheckedIcon,
+  DeleteOutline as DeleteOutlineIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { fetchTeamMembers } from "../redux/slices/teamSlice";
@@ -63,11 +76,18 @@ const ProjectDetailPage = () => {
     status: "pending",
     due_date: "",
     priority: "",
+    assigned_to: [],
   });
 
-  // Task Menu
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+
+  const [openChecklistDialog, setOpenChecklistDialog] = useState(false);
+  const [checklistTask, setChecklistTask] = useState(null);   
+  const [checklists, setChecklists] = useState([]);           
+  const [checklistLoading, setChecklistLoading] = useState(false);
+  const [newChecklistItem, setNewChecklistItem] = useState("");
+  const [addingItem, setAddingItem] = useState(false);
 
   useEffect(() => {
     fetchProjectData();
@@ -91,14 +111,12 @@ const ProjectDetailPage = () => {
   };
 
   const handleCreateTask = async () => {
+    taskForm.assigned_to = selectedUsers;
     try {
-      taskForm.assigned_to = selectedUsers;
-      await axios.post(
-        `${API_URL}/project/${id}/tasks`,
-        taskForm,
-        { withCredentials: true },
-      );
-      await fetchProjectData()
+      await axios.post(`${API_URL}/project/${id}/tasks`, taskForm, {
+        withCredentials: true,
+      });
+      await fetchProjectData();
       setOpenTaskDialog(false);
       resetTaskForm();
       toast.success("Task created successfully");
@@ -122,6 +140,7 @@ const ProjectDetailPage = () => {
   };
 
   const handleUpdateTask = async () => {
+    taskForm.assigned_to = selectedUsers;
     try {
       await axios.put(
         `${API_URL}/project/${id}/tasks/${editingTask.id}`,
@@ -176,6 +195,7 @@ const ProjectDetailPage = () => {
       status: "pending",
       due_date: "",
       priority: "",
+      assigned_to: [],
     });
     setEditingTask(null);
   };
@@ -198,6 +218,9 @@ const ProjectDetailPage = () => {
       status: task.status,
       due_date: task.due_date.split("T")[0],
       priority: task.priority,
+      assigned_to: task.assigned_users
+        ? task.assigned_users.map((u) => u.user_id)
+        : [],
     });
     setOpenTaskDialog(true);
     handleMenuClose();
@@ -230,6 +253,85 @@ const ProjectDetailPage = () => {
   const handleEditBtn = async (id) => {
     openEditDialog(selectedTask);
     await dispatch(fetchTeamMembers(id));
+  };
+
+
+  /** Open dialog and load checklist items for a task */
+  const handleAddChecklist = async (task) => {
+    handleMenuClose();
+    setChecklistTask(task);
+    setOpenChecklistDialog(true);
+    setChecklistLoading(true);
+    try {
+      const res = await axios.get(
+        `${API_URL}/project/${id}/tasks/${task.id}/checklists`,
+        { withCredentials: true },
+      );
+      setChecklists(res.data.data || []);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to load checklist");
+    } finally {
+      setChecklistLoading(false);
+    }
+  };
+
+  /** Add a new checklist item */
+  const handleAddChecklistItem = async () => {
+    if (!newChecklistItem.trim()) return;
+    setAddingItem(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/project/${id}/tasks/${checklistTask.id}/checklists`,
+        { title: newChecklistItem.trim() },
+        { withCredentials: true },
+      );
+      setChecklists((prev) => [...prev, res.data.data]);
+      setNewChecklistItem("");
+      toast.success("Checklist item added");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to add checklist item");
+    } finally {
+      setAddingItem(false);
+    }
+  };
+
+  const handleToggleChecklistItem = async (item) => {
+    try {
+      const res = await axios.put(
+        `${API_URL}/project/${id}/tasks/${checklistTask.id}/checklists/${item.id}`,
+        { isCompeleted: !item.isCompeleted },
+        { withCredentials: true },
+      );
+      setChecklists((prev) =>
+        prev.map((c) => (c.id === item.id ? res.data.data : c)),
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to update checklist item");
+    }
+  };
+
+  const handleDeleteChecklistItem = async (itemId) => {
+    try {
+      await axios.delete(
+        `${API_URL}/project/${id}/tasks/${checklistTask.id}/checklists/${itemId}`,
+        { withCredentials: true },
+      );
+      setChecklists((prev) => prev.filter((c) => c.id !== itemId));
+      toast.success("Item removed");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to delete checklist item");
+    }
+  };
+
+  const handleCloseChecklistDialog = () => {
+    setOpenChecklistDialog(false);
+    setChecklistTask(null);
+    setChecklists([]);
+    setNewChecklistItem("");
   };
 
   if (loading) {
@@ -320,9 +422,7 @@ const ProjectDetailPage = () => {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => {
-                handleAddTaskBtn(project.teamId);
-              }}
+              onClick={() => handleAddTaskBtn(project.teamId)}
               className="btn-primary"
             >
               Add Task
@@ -435,13 +535,13 @@ const ProjectDetailPage = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem
-          onClick={() => {
-            handleEditBtn(project.teamId);
-          }}
-        >
+        <MenuItem onClick={() => handleEditBtn(project.teamId)}>
           <EditIcon className="mr-2" fontSize="small" />
           Edit
+        </MenuItem>
+        <MenuItem onClick={() => handleAddChecklist(selectedTask)}>
+          <EditDocumentIcon className="mr-2" fontSize="small" />
+          Checklist
         </MenuItem>
         <MenuItem
           onClick={() => handleDeleteTask(selectedTask?.id)}
@@ -451,6 +551,111 @@ const ProjectDetailPage = () => {
           Delete
         </MenuItem>
       </Menu>
+
+      <Dialog
+        open={openChecklistDialog}
+        onClose={handleCloseChecklistDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ textAlign: "center" }}>
+          Checklist — {checklistTask?.title}
+        </DialogTitle>
+
+        <DialogContent>
+
+          <Divider sx={{ mb: 1 }} />
+
+          {/* Item list */}
+          {checklistLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : checklists.length === 0 ? (
+            <Typography
+              color="textSecondary"
+              align="center"
+              sx={{ py: 3, fontSize: 14 }}
+            >
+              No checklist items yet. Add one below.
+            </Typography>
+          ) : (
+            <List dense disablePadding>
+              {checklists.map((item) => (
+                <ListItem
+                  key={item.id}
+                  disableGutters
+                  sx={{ px: 0, py: 0.25 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Checkbox
+                      edge="start"
+                      checked={!!item.isCompeleted}
+                      onChange={() => handleToggleChecklistItem(item)}
+                      icon={<UncheckedIcon />}
+                      checkedIcon={<CheckedIcon color="success" />}
+                      size="small"
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.title}
+                    primaryTypographyProps={{
+                      sx: {
+                        textDecoration: item.isCompeleted
+                          ? "line-through"
+                          : "none",
+                        color: item.isCompeleted ? "text.disabled" : "text.primary",
+                        fontSize: 14,
+                      },
+                    }}
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      edge="end"
+                      size="small"
+                      onClick={() => handleDeleteChecklistItem(item.id)}
+                    >
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+          )}
+
+          <Divider sx={{ mt: 1, mb: 2 }} />
+
+          {/* Add new item */}
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <TextField
+              label="New checklist item"
+              size="small"
+              fullWidth
+              value={newChecklistItem}
+              onChange={(e) => setNewChecklistItem(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAddChecklistItem();
+              }}
+              disabled={addingItem}
+              placeholder="Type and press Enter or click Add"
+            />
+            <Button
+              variant="contained"
+              onClick={handleAddChecklistItem}
+              disabled={!newChecklistItem.trim() || addingItem}
+              startIcon={addingItem ? <CircularProgress size={16} /> : <AddIcon />}
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              Add
+            </Button>
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseChecklistDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      {/* ─────────────────────────────────────────────────────────────── */}
 
       {/* Create/Edit Task Dialog */}
       <Dialog
@@ -522,9 +727,7 @@ const ProjectDetailPage = () => {
               multiple
               options={currentTeamMembers}
               disableCloseOnSelect
-              // FIX: data is nested under option.user — extract correctly
               getOptionLabel={(option) => getMemberLabel(option)}
-              // FIX: match selected IDs back to option objects
               isOptionEqualToValue={(option, value) =>
                 getMemberId(option) === getMemberId(value)
               }
@@ -542,11 +745,11 @@ const ProjectDetailPage = () => {
                 />
               )}
               renderOption={(props, option, { selected }) => {
-                const { ...rest } = props;
+                const { key, ...rest } = props;
                 const u = getMemberUser(option);
                 const uid = getMemberId(option);
                 return (
-                  <li key={uid} {...rest}>
+                  <li key={uid ?? key} {...rest}>
                     <Checkbox checked={selected} style={{ marginRight: 8 }} />
                     <Avatar
                       sx={{
@@ -576,9 +779,10 @@ const ProjectDetailPage = () => {
               renderTags={(tagValue, getTagProps) =>
                 tagValue.map((option, index) => {
                   const u = getMemberUser(option);
+                  const { key, ...tagProps } = getTagProps({ index });
                   return (
                     <Chip
-                      key={getMemberId(option)}
+                      key={getMemberId(option) ?? key}
                       size="small"
                       label={u?.username || u?.name || u?.email}
                       avatar={
@@ -588,7 +792,7 @@ const ProjectDetailPage = () => {
                           {(u?.username || "U")[0].toUpperCase()}
                         </Avatar>
                       }
-                      {...getTagProps({ index })}
+                      {...tagProps}
                     />
                   );
                 })

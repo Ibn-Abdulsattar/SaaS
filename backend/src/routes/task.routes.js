@@ -5,7 +5,7 @@ import {
   getTaskById,
   updateTask,
   deleteTask,
-  toggleChecklistItem,
+  changeTaskStatus,
 } from "../controllers/task.controller.js";
 import wrapAsync from "../utils/wrapAsync.js";
 import auth from "../middlewares/auth.js";
@@ -15,8 +15,10 @@ import {
   updateTaskSchema,
 } from "../validator/task.valdator.js";
 import { validateRequest } from "../middlewares/validationRequest.js";
+import checklistRoutes from "./checklist.routes.js";
 
 const router = Router({ mergeParams: true });
+router.use("/:taskId/checklists", checklistRoutes);
 
 router
   .route("/")
@@ -29,9 +31,9 @@ router
   .get(auth(["admin", "manager"]), wrapAsync(getTasksByProject));
 router
   .route("/:id")
-  .get(auth(["admin", "manager"]), wrapAsync(getTaskById))
+  .get(auth(["user","admin", "manager"]), wrapAsync(getTaskById))
   .put(
-    auth(["admin", "manager"]),
+    auth(["manager","admin"]),
     updateTaskSchema,
     validateRequest("Task"),
     wrapAsync(updateTask),
@@ -42,9 +44,8 @@ router
     validateRequest("Task"),
     wrapAsync(deleteTask),
   );
-router.patch(
-  "/:id/checklist/:itemId",
-  auth(["user"]),
-  wrapAsync(toggleChecklistItem),
+router.route("/:id/status").patch(
+  auth(["user", "manager", "admin"]),
+  wrapAsync(changeTaskStatus),
 );
 export default router;

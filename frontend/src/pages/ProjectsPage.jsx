@@ -468,11 +468,7 @@ export default function ProjectPage() {
       </div>
 
       {/* Content */}
-      {isLoading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: 60 }}>
-          <CircularProgress />
-        </div>
-      ) : projects.length === 0 ? (
+      {projects.length === 0 ? (
         <div
           style={{
             textAlign: "center",

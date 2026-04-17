@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import {useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
@@ -17,25 +17,15 @@ import {
   Chip,
   CircularProgress,
   InputAdornment,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-  Paper,
-  TablePagination,
 } from "@mui/material";
 import {
   Add,
   Search,
-  Clear,
-  Visibility,
-  Edit,
-  Delete,
   CheckBoxOutlineBlank,
   CheckBox,
-  FilterList,
+  Edit,
+  Delete,
+  PlayArrow,
 } from "@mui/icons-material";
 import { allUsers } from "../redux/slices/authSlice";
 import { toast } from "react-toastify";
@@ -48,11 +38,11 @@ const canManage = (role) => role === "admin" || role === "manager";
 const STATUS_OPTIONS = ["pending", "in_progress", "completed"];
 const PRIORITY_OPTIONS = ["low", "medium", "high"];
 
-const statusColor = (s) => {
-  if (s === "completed") return { bg: "#dcfce7", color: "#16a34a" };
-  if (s === "in_progress") return { bg: "#dbeafe", color: "#2563eb" };
-  return { bg: "#f1f5f9", color: "#64748b" };
-};
+const COLUMNS = [
+  { key: "pending", label: "Pending", color: "#64748b", bg: "#f1f5f9" },
+  { key: "in_progress", label: "In Progress", color: "#2563eb", bg: "#dbeafe" },
+  { key: "completed", label: "Completed", color: "#16a34a", bg: "#dcfce7" },
+];
 
 const priorityColor = (p) => {
   if (p === "high") return { bg: "#fee2e2", color: "#dc2626" };
@@ -72,63 +62,66 @@ const avatarColor = (name = "") => {
   return colors[(name.charCodeAt(0) || 0) % colors.length];
 };
 
-const ChecklistSection = ({ taskId, checklist, onToggle }) => (
-  <div style={{ marginTop: 8 }}>
-    <p
-      style={{
-        margin: "0 0 8px",
-        fontWeight: 600,
-        fontSize: "0.85rem",
-        color: "#374151",
-      }}
-    >
-      Your Checklist
-    </p>
-    {checklist.length === 0 ? (
-      <p style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
-        No checklist items
+/* ── Checklist Section ── */
+const ChecklistSection = ({ taskId, checklist, onToggle }) => {
+  return (
+    <div style={{ marginTop: 12 }}>
+      <p
+        style={{
+          margin: "0 0 8px",
+          fontWeight: 600,
+          fontSize: "0.82rem",
+          color: "#374151",
+        }}
+      >
+        Checklist ({checklist.filter((i) => i.isCompeleted).length}/{checklist.length})
       </p>
-    ) : (
-      checklist.map((item) => (
-        <div
-          key={item.id}
-          onClick={() => onToggle(taskId, item.id)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "6px 0",
-            cursor: "pointer",
-            borderBottom: "1px solid #f1f5f9",
-          }}
-        >
-          {item.isCompleted ? (
-            <CheckBox sx={{ fontSize: 18, color: "#3b82f6" }} />
-          ) : (
-            <CheckBoxOutlineBlank sx={{ fontSize: 18, color: "#94a3b8" }} />
-          )}
-          <span
+      {checklist.length === 0 ? (
+        <p style={{ color: "#94a3b8", fontSize: "0.82rem" }}>
+          No checklist items
+        </p>
+      ) : (
+        checklist.map((item) => (
+          <div
+            key={item.id}
+            onClick={() => onToggle(taskId, item.id)}
             style={{
-              fontSize: "0.875rem",
-              color: item.isCompleted ? "#94a3b8" : "#374151",
-              textDecoration: item.isCompleted ? "line-through" : "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "5px 0",
+              cursor: "pointer",
+              borderBottom: "1px solid #f1f5f9",
             }}
           >
-            {item.itemName}
-          </span>
-        </div>
-      ))
-    )}
-  </div>
-);
+            {item.isCompeleted ? (
+              <CheckBox sx={{ fontSize: 17, color: "#3b82f6" }} />
+            ) : (
+              <CheckBoxOutlineBlank sx={{ fontSize: 17, color: "#94a3b8" }} />
+            )}
+            <span
+              style={{
+                fontSize: "0.82rem",
+                color: item.isCompeleted ? "#94a3b8" : "#374151",
+                textDecoration: item.isCompeleted ? "line-through" : "none",
+              }}
+            >
+              {item.title}
+            </span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
 
+/* ── Task Form Dialog ── */
 const TaskFormDialog = ({
   open,
   onClose,
   onSubmit,
   initialData,
   allUsersList,
-  // projectId,
   mode,
 }) => {
   const [form, setForm] = useState({
@@ -207,14 +200,13 @@ const TaskFormDialog = ({
     if (!form.title.trim()) return toast.error("Title is required");
     if (!form.assigned_to.length)
       return toast.error("Assign at least one user");
-    if (!form.priority) return toast.error("Priority is required");
     if (!form.due_date) return toast.error("Due date is required");
     onSubmit(form);
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>
+      <DialogTitle sx={{ fontWeight: 700, fontSize: "1rem" }}>
         {mode === "edit" ? "Edit Task" : "Create New Task"}
       </DialogTitle>
       <DialogContent
@@ -286,12 +278,11 @@ const TaskFormDialog = ({
           onChange={(e) => setForm({ ...form, due_date: e.target.value })}
         />
 
-        {/* Assign Users */}
         <div>
           <p
             style={{
               margin: "0 0 6px",
-              fontSize: "0.85rem",
+              fontSize: "0.82rem",
               fontWeight: 600,
               color: "#374151",
             }}
@@ -315,7 +306,7 @@ const TaskFormDialog = ({
           />
           <div
             style={{
-              maxHeight: 180,
+              maxHeight: 160,
               overflowY: "auto",
               border: "1px solid #e2e8f0",
               borderRadius: 8,
@@ -332,7 +323,7 @@ const TaskFormDialog = ({
                     display: "flex",
                     alignItems: "center",
                     gap: 10,
-                    padding: "8px 12px",
+                    padding: "7px 12px",
                     cursor: "pointer",
                     background: selected ? "#eff6ff" : "#fff",
                     borderBottom: "1px solid #f8fafc",
@@ -340,16 +331,16 @@ const TaskFormDialog = ({
                 >
                   <Avatar
                     sx={{
-                      width: 28,
-                      height: 28,
-                      fontSize: 12,
+                      width: 26,
+                      height: 26,
+                      fontSize: 11,
                       bgcolor: avatarColor(u.name || ""),
                     }}
                   >
                     {(u.name || "U")[0].toUpperCase()}
                   </Avatar>
                   <div style={{ flex: 1 }}>
-                    <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>
+                    <span style={{ fontSize: "0.82rem", fontWeight: 500 }}>
                       {u.name}
                     </span>
                     <span
@@ -399,24 +390,23 @@ const TaskFormDialog = ({
           )}
         </div>
 
-        {/* Checklist (only for create) */}
         {mode !== "edit" && (
           <div>
             <p
               style={{
                 margin: "0 0 6px",
-                fontSize: "0.85rem",
+                fontSize: "0.82rem",
                 fontWeight: 600,
                 color: "#374151",
               }}
             >
-              Checklist Template (optional)
+              Checklist (optional)
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               <TextField
                 size="small"
                 fullWidth
-                placeholder="Add checklist item..."
+                placeholder="Add item..."
                 value={checklistInput}
                 onChange={(e) => setChecklistInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addChecklist()}
@@ -453,10 +443,10 @@ const TaskFormDialog = ({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      padding: "6px 10px",
+                      padding: "5px 10px",
                       background: "#f8fafc",
                       borderRadius: 6,
-                      fontSize: "0.85rem",
+                      fontSize: "0.82rem",
                     }}
                   >
                     <span>{item}</span>
@@ -512,6 +502,203 @@ const TaskFormDialog = ({
   );
 };
 
+/* ── Task Card ── */
+const TaskCard = ({
+  task,
+  manage,
+  onView,
+  onEdit,
+  onDelete,
+  onStatusChange,
+  onStartTask,
+}) => {
+  const pc = priorityColor(task.priority);
+  const isStartable = task.status === "pending";
+
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 10,
+        padding: "14px 16px",
+        marginBottom: 10,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: 8,
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontWeight: 600,
+            fontSize: "0.88rem",
+            color: "#0f172a",
+            flex: 1,
+            paddingRight: 8,
+          }}
+        >
+          {task.title}
+        </p>
+        <span
+          style={{
+            padding: "2px 9px",
+            borderRadius: 20,
+            fontSize: "0.72rem",
+            fontWeight: 500,
+            background: pc.bg,
+            color: pc.color,
+            flexShrink: 0,
+          }}
+        >
+          {task.priority}
+        </span>
+      </div>
+
+      {task.description && (
+        <p
+          style={{
+            margin: "0 0 8px",
+            fontSize: "0.78rem",
+            color: "#64748b",
+            lineHeight: 1.4,
+          }}
+        >
+          {task.description.substring(0, 80)}
+          {task.description.length > 80 ? "…" : ""}
+        </p>
+      )}
+
+      {task.due_date && (
+        <p
+          style={{
+            margin: "0 0 6px",
+            fontSize: "0.75rem",
+            color: task.isOverDue ? "#dc2626" : "#64748b",
+          }}
+        >
+          Due: {new Date(task.due_date).toLocaleDateString()}
+          {task.isOverDue ? " · Overdue" : ""}
+        </p>
+      )}
+
+      {/* Show startDate on in_progress and completed cards */}
+      {task.startDate && (
+        <p
+          style={{ margin: "0 0 10px", fontSize: "0.75rem", color: "#64748b" }}
+        >
+          Started: {new Date(task.startDate).toLocaleDateString()}
+        </p>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <select
+          value={task.status}
+          onChange={(e) => onStatusChange(task, e.target.value)}
+          style={{
+            fontSize: "0.75rem",
+            padding: "4px 8px",
+            borderRadius: 6,
+            border: "1px solid #e2e8f0",
+            background: "#f8fafc",
+            cursor: "pointer",
+            color: "#374151",
+          }}
+        >
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s.replace("_", " ")}
+            </option>
+          ))}
+        </select>
+
+        {isStartable && (
+          <button
+            onClick={() => onStartTask(task)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "4px 10px",
+              borderRadius: 6,
+              border: "none",
+              background: "#2563eb",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: "0.75rem",
+              fontWeight: 600,
+            }}
+          >
+            <PlayArrow sx={{ fontSize: 13 }} /> Start
+          </button>
+        )}
+
+        <div style={{ flex: 1 }} />
+
+        <button
+          onClick={() => onView(task)}
+          style={{
+            padding: "4px 10px",
+            borderRadius: 6,
+            border: "1px solid #e2e8f0",
+            background: "#fff",
+            cursor: "pointer",
+            fontSize: "0.75rem",
+            color: "#374151",
+          }}
+        >
+          View
+        </button>
+
+        {manage && (
+          <>
+            <button
+              onClick={() => onEdit(task)}
+              style={{
+                padding: "4px 8px",
+                borderRadius: 6,
+                border: "1px solid #e2e8f0",
+                background: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Edit sx={{ fontSize: 13, color: "#3b82f6" }} />
+            </button>
+            <button
+              onClick={() => onDelete(task)}
+              style={{
+                padding: "4px 8px",
+                borderRadius: 6,
+                border: "1px solid #fee2e2",
+                background: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Delete sx={{ fontSize: 13, color: "#dc2626" }} />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ── Main TaskPage ── */
 export default function TaskPage() {
   const dispatch = useDispatch();
@@ -520,11 +707,6 @@ export default function TaskPage() {
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [total, setTotal] = useState(0);
-
-  const [filters, setFilters] = useState({ status: "", priority: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [detailTask, setDetailTask] = useState(null);
@@ -532,48 +714,31 @@ export default function TaskPage() {
 
   const role = roleOf(user);
   const manage = canManage(role);
+
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (filters.status) params.append("status", filters.status);
-      if (filters.priority) params.append("priority", filters.priority);
-
-      // let url;
-      let data;
       if (projectId) {
-        // Manager/Admin: tasks by project
-        const res = await axios.get(
-          `${API_URL}/project/${projectId}/tasks?${params}`,
-          { withCredentials: true },
-        );
-        console.log(res);
-        data = res.data;
-        setTasks(data.data || []);
-        setTotal(data.total || 0);
-      } else {
-        // User: their assigned tasks (filtered)
-        params.append("page", page + 1);
-        params.append("limit", rowsPerPage);
-        const res = await axios.get(`${API_URL}/search/task?${params}`, {
+        const res = await axios.get(`${API_URL}/project/${projectId}/tasks`, {
           withCredentials: true,
         });
-        data = res.data;
-        setTasks(data.tasks || []);
-        setTotal(data.total || 0);
+        setTasks(res.data.data || []);
+      } else {
+        const res = await axios.get(`${API_URL}/search/task`, {
+          withCredentials: true,
+        });
+        setTasks(res.data.tasks || []);
       }
-    } catch (e) {
-      console.log(e);
+    } catch {
       toast.error("Failed to fetch tasks");
     } finally {
       setLoading(false);
     }
-  }, [projectId, filters, page, rowsPerPage]);
+  }, [projectId]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
-
   useEffect(() => {
     if (manage) dispatch(allUsers());
   }, [dispatch, manage]);
@@ -620,51 +785,70 @@ export default function TaskPage() {
     }
   };
 
+  const handleStatusChange = async (task, newStatus) => {
+    if (task.status === newStatus) return;
+    const startDate =
+      newStatus === "in_progress" && !task.startDate
+        ? new Date().toISOString()
+        : task.startDate || null;
+    try {
+      await axios.patch(
+        `${API_URL}/project/${task.project_id || projectId}/tasks/${task.id}/status`,
+        { status: newStatus, startDate },
+        { withCredentials: true },
+      );
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === task.id ? { ...t, status: newStatus, startDate } : t,
+        ),
+      );
+      toast.success("Status updated");
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleStartTask = (task) => handleStatusChange(task, "in_progress");
+
   const openDetail = async (task) => {
     setDetailTask(task);
-    // Fetch checklist for user
-    if (!manage) {
-      try {
-        const res = await axios.get(
-          `${API_URL}/project/${task.project_id}/tasks/${task.id}`,
-          { withCredentials: true },
-        );
-        setChecklist(res.data?.data?.checklist || []);
-      } catch {
-        setChecklist([]);
-      }
+    try {
+      const res = await axios.get(
+        `${API_URL}/project/${task.project_id || projectId}/tasks/${task.id}`,
+        { withCredentials: true },
+      );
+      setChecklist(res.data?.data?.checklistItems || []);
+    } catch {
+      setChecklist([]);
     }
   };
 
   const handleToggleChecklist = async (taskId, itemId) => {
     try {
-      const res = await axios.patch(
-        `${API_URL}/project/${detailTask.project_id}/tasks/${taskId}/checklist/${itemId}`,
-        {},
+      const res = await axios.put(
+        `${API_URL}/project/${detailTask.project_id || projectId}/tasks/${taskId}/checklists/${itemId}`,
+        {isCompeleted: !checklist.find((i) => i.id === itemId)?.isCompeleted},
         { withCredentials: true },
       );
       setChecklist((prev) =>
-        prev.map((i) => (i.id === itemId ? res.data.item : i)),
+        prev.map((i) => (i.id === itemId ? res.data.data : i)),
       );
     } catch {
       toast.error("Failed to toggle item");
     }
   };
 
-  const displayedTasks = projectId
-    ? tasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    : tasks;
+  const tasksByStatus = (status) => tasks.filter((t) => t.status === status);
 
   return (
     <div
       style={{
         fontFamily: "'Inter', sans-serif",
-        padding: "28px 32px",
-        maxWidth: 1200,
+        padding: "24px 28px",
+        maxWidth: 1300,
         margin: "0 auto",
       }}
     >
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -677,7 +861,7 @@ export default function TaskPage() {
           <h1
             style={{
               margin: 0,
-              fontSize: "1.5rem",
+              fontSize: "1.4rem",
               fontWeight: 700,
               color: "#0f172a",
             }}
@@ -685,13 +869,9 @@ export default function TaskPage() {
             {projectId ? "Project Tasks" : "My Tasks"}
           </h1>
           <p
-            style={{
-              margin: "4px 0 0",
-              color: "#64748b",
-              fontSize: "0.875rem",
-            }}
+            style={{ margin: "4px 0 0", color: "#64748b", fontSize: "0.85rem" }}
           >
-            {total} tasks total
+            {tasks.length} tasks total
           </p>
         </div>
         {manage && projectId && (
@@ -700,381 +880,128 @@ export default function TaskPage() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              padding: "10px 20px",
+              gap: 6,
+              padding: "9px 18px",
               borderRadius: 8,
               border: "none",
               background: "#3b82f6",
               color: "#fff",
               fontWeight: 600,
-              fontSize: "0.9rem",
+              fontSize: "0.875rem",
               cursor: "pointer",
             }}
           >
-            <Add sx={{ fontSize: 18 }} /> New Task
+            <Add sx={{ fontSize: 17 }} /> New Task
           </button>
         )}
       </div>
 
-      {/* Filters */}
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 10,
-          padding: "16px 20px",
-          marginBottom: 20,
-          display: "flex",
-          gap: 12,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <FilterList sx={{ color: "#64748b", fontSize: 20 }} />
-        <FormControl size="small" sx={{ minWidth: 130 }}>
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={filters.status}
-            label="Status"
-            onChange={(e) => {
-              setFilters({ ...filters, status: e.target.value });
-              setPage(0);
-            }}
-          >
-            <MenuItem value="">All</MenuItem>
-            {STATUS_OPTIONS.map((s) => (
-              <MenuItem key={s} value={s}>
-                {s.replace("_", " ")}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 130 }}>
-          <InputLabel>Priority</InputLabel>
-          <Select
-            value={filters.priority}
-            label="Priority"
-            onChange={(e) => {
-              setFilters({ ...filters, priority: e.target.value });
-              setPage(0);
-            }}
-          >
-            <MenuItem value="">All</MenuItem>
-            {PRIORITY_OPTIONS.map((p) => (
-              <MenuItem key={p} value={p}>
-                {p}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        {(filters.status || filters.priority) && (
-          <button
-            onClick={() => setFilters({ status: "", priority: "" })}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "6px 12px",
-              borderRadius: 7,
-              border: "1px solid #e2e8f0",
-              background: "#fff",
-              color: "#64748b",
-              cursor: "pointer",
-              fontSize: "0.85rem",
-            }}
-          >
-            <Clear sx={{ fontSize: 15 }} /> Clear
-          </button>
-        )}
-      </div>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 60 }}>
+          <CircularProgress />
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 16,
+          }}
+        >
+          {COLUMNS.map((col) => {
+            const colTasks = tasksByStatus(col.key);
+            return (
+              <div
+                key={col.key}
+                style={{
+                  background: "#f8fafc",
+                  borderRadius: 12,
+                  padding: 14,
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 14,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      background: col.color,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "0.875rem",
+                      color: "#0f172a",
+                    }}
+                  >
+                    {col.label}
+                  </span>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      background: col.bg,
+                      color: col.color,
+                      borderRadius: 20,
+                      padding: "2px 9px",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {colTasks.length}
+                  </span>
+                </div>
 
-      {/* Table */}
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 10,
-          overflow: "hidden",
-        }}
-      >
-        {loading ? (
-          <div
-            style={{ display: "flex", justifyContent: "center", padding: 60 }}
-          >
-            <CircularProgress />
-          </div>
-        ) : tasks.length === 0 ? (
-          <div
-            style={{ textAlign: "center", padding: "56px 0", color: "#64748b" }}
-          >
-            No tasks found
-          </div>
-        ) : (
-          <>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ background: "#f8fafc" }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: "#374151",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      TITLE
-                    </TableCell>
-                    {!projectId && (
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          color: "#374151",
-                          fontSize: "0.8rem",
-                        }}
-                      >
-                        PROJECT
-                      </TableCell>
-                    )}
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: "#374151",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      STATUS
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: "#374151",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      PRIORITY
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: "#374151",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      DUE DATE
-                    </TableCell>
-                    {manage && (
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          color: "#374151",
-                          fontSize: "0.8rem",
-                        }}
-                      >
-                        OVERDUE
-                      </TableCell>
-                    )}
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: "#374151",
-                        fontSize: "0.8rem",
-                      }}
-                      align="right"
-                    >
-                      ACTIONS
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {displayedTasks.map((task) => {
-                    const sc = statusColor(task.status);
-                    const pc = priorityColor(task.priority);
-                    return (
-                      <TableRow key={task.id} hover>
-                        <TableCell>
-                          <div
-                            style={{
-                              fontWeight: 500,
-                              color: "#0f172a",
-                              fontSize: "0.9rem",
-                            }}
-                          >
-                            {task.title}
-                          </div>
-                          {task.description && (
-                            <div
-                              style={{
-                                fontSize: "0.78rem",
-                                color: "#64748b",
-                                marginTop: 2,
-                              }}
-                            >
-                              {task.description.substring(0, 60)}
-                              {task.description.length > 60 ? "…" : ""}
-                            </div>
-                          )}
-                        </TableCell>
-                        {!projectId && (
-                          <TableCell>
-                            <Chip
-                              label={task.project?.title || "—"}
-                              size="small"
-                              variant="outlined"
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell>
-                          <span
-                            style={{
-                              padding: "3px 10px",
-                              borderRadius: 20,
-                              fontSize: "0.78rem",
-                              fontWeight: 500,
-                              background: sc.bg,
-                              color: sc.color,
-                            }}
-                          >
-                            {task.status.replace("_", " ")}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            style={{
-                              padding: "3px 10px",
-                              borderRadius: 20,
-                              fontSize: "0.78rem",
-                              fontWeight: 500,
-                              background: pc.bg,
-                              color: pc.color,
-                            }}
-                          >
-                            {task.priority}
-                          </span>
-                        </TableCell>
-                        <TableCell
-                          sx={{ fontSize: "0.85rem", color: "#374151" }}
-                        >
-                          {task.due_date
-                            ? new Date(task.due_date).toLocaleDateString()
-                            : "—"}
-                        </TableCell>
-                        {manage && (
-                          <TableCell>
-                            {task.isOverDue ? (
-                              <span
-                                style={{
-                                  color: "#dc2626",
-                                  fontSize: "0.8rem",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                Overdue
-                              </span>
-                            ) : (
-                              <span
-                                style={{ color: "#16a34a", fontSize: "0.8rem" }}
-                              >
-                                On track
-                              </span>
-                            )}
-                          </TableCell>
-                        )}
-                        <TableCell align="right">
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 4,
-                              justifyContent: "flex-end",
-                            }}
-                          >
-                            <button
-                              onClick={() => openDetail(task)}
-                              style={{
-                                padding: "5px 8px",
-                                borderRadius: 6,
-                                border: "1px solid #e2e8f0",
-                                background: "#fff",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Visibility
-                                sx={{ fontSize: 15, color: "#64748b" }}
-                              />
-                            </button>
-                            {manage && (
-                              <>
-                                <button
-                                  onClick={() => setEditTask(task)}
-                                  style={{
-                                    padding: "5px 8px",
-                                    borderRadius: 6,
-                                    border: "1px solid #e2e8f0",
-                                    background: "#fff",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <Edit
-                                    sx={{ fontSize: 15, color: "#3b82f6" }}
-                                  />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(task)}
-                                  style={{
-                                    padding: "5px 8px",
-                                    borderRadius: 6,
-                                    border: "1px solid #fee2e2",
-                                    background: "#fff",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <Delete
-                                    sx={{ fontSize: 15, color: "#dc2626" }}
-                                  />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              component="div"
-              count={total}
-              page={page}
-              onPageChange={(_, p) => setPage(p)}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(e) => {
-                setRowsPerPage(parseInt(e.target.value, 10));
-                setPage(0);
-              }}
-            />
-          </>
-        )}
-      </div>
+                {colTasks.length === 0 ? (
+                  <p
+                    style={{
+                      textAlign: "center",
+                      color: "#94a3b8",
+                      fontSize: "0.8rem",
+                      padding: "20px 0",
+                    }}
+                  >
+                    No tasks
+                  </p>
+                ) : (
+                  colTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      manage={manage}
+                      onView={openDetail}
+                      onEdit={setEditTask}
+                      onDelete={handleDelete}
+                      onStatusChange={handleStatusChange}
+                      onStartTask={handleStartTask}
+                    />
+                  ))
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Create Task Dialog */}
       {manage && (
         <TaskFormDialog
           open={formOpen}
           onClose={() => setFormOpen(false)}
           onSubmit={handleCreate}
           allUsersList={users}
-          projectId={projectId}
           mode="create"
         />
       )}
 
-      {/* Edit Task Dialog */}
       {manage && (
         <TaskFormDialog
           open={!!editTask}
@@ -1082,12 +1009,10 @@ export default function TaskPage() {
           onSubmit={handleUpdate}
           initialData={editTask}
           allUsersList={users}
-          projectId={projectId}
           mode="edit"
         />
       )}
 
-      {/* Detail / Checklist Dialog */}
       <Dialog
         open={!!detailTask}
         onClose={() => setDetailTask(null)}
@@ -1097,6 +1022,7 @@ export default function TaskPage() {
         <DialogTitle
           sx={{
             fontWeight: 700,
+            fontSize: "1rem",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -1112,13 +1038,13 @@ export default function TaskPage() {
         </DialogTitle>
         <DialogContent sx={{ pt: "8px !important" }}>
           {detailTask && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
                 <p
                   style={{
                     margin: 0,
                     fontWeight: 700,
-                    fontSize: "1.1rem",
+                    fontSize: "1rem",
                     color: "#0f172a",
                   }}
                 >
@@ -1129,25 +1055,26 @@ export default function TaskPage() {
                     style={{
                       margin: "6px 0 0",
                       color: "#64748b",
-                      fontSize: "0.875rem",
+                      fontSize: "0.85rem",
                     }}
                   >
                     {detailTask.description}
                   </p>
                 )}
               </div>
+
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {(() => {
-                  const sc = statusColor(detailTask.status);
+                  const col = COLUMNS.find((c) => c.key === detailTask.status);
                   return (
                     <span
                       style={{
                         padding: "3px 12px",
                         borderRadius: 20,
-                        fontSize: "0.8rem",
+                        fontSize: "0.78rem",
                         fontWeight: 500,
-                        background: sc.bg,
-                        color: sc.color,
+                        background: col?.bg,
+                        color: col?.color,
                       }}
                     >
                       {detailTask.status.replace("_", " ")}
@@ -1161,7 +1088,7 @@ export default function TaskPage() {
                       style={{
                         padding: "3px 12px",
                         borderRadius: 20,
-                        fontSize: "0.8rem",
+                        fontSize: "0.78rem",
                         fontWeight: 500,
                         background: pc.bg,
                         color: pc.color,
@@ -1172,19 +1099,25 @@ export default function TaskPage() {
                   );
                 })()}
               </div>
-              <div style={{ fontSize: "0.875rem", color: "#374151" }}>
-                <b>Due:</b>{" "}
-                {detailTask.due_date
-                  ? new Date(detailTask.due_date).toLocaleDateString()
-                  : "—"}
-              </div>
-              {!manage && (
-                <ChecklistSection
-                  taskId={detailTask.id}
-                  checklist={checklist}
-                  onToggle={handleToggleChecklist}
-                />
+
+              {detailTask.due_date && (
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "#374151" }}>
+                  <b>Due:</b>{" "}
+                  {new Date(detailTask.due_date).toLocaleDateString()}
+                </p>
               )}
+              {detailTask.startDate && (
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "#374151" }}>
+                  <b>Started:</b>{" "}
+                  {new Date(detailTask.startDate).toLocaleDateString()}
+                </p>
+              )}
+
+              <ChecklistSection
+                taskId={detailTask.id}
+                checklist={checklist}
+                onToggle={handleToggleChecklist}
+              />
             </div>
           )}
         </DialogContent>

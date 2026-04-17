@@ -24,6 +24,7 @@ import { Activity } from "./models/activity.model.js";
 import { v2 as cloudinary } from "cloudinary";
 import { Team } from "./models/team.model.js";
 import { TeamMembers } from "./models/teamMembers.model.js";
+import ChecklistItem from "./models/checklistItem.model.js";
 dotenv.config();
 const app = express();
 app.set("PORT", process.env.PORT || 5000);
@@ -95,18 +96,8 @@ TeamMembers.belongsTo(User, { foreignKey: "userId", as: "user" });
 TeamMembers.belongsTo(Team, { foreignKey: "teamId", as: "team" });
 Team.hasMany(Project, { foreignKey: "teamId", as: "projects" });
 Project.belongsTo(Team, { foreignKey: "teamId", as: "team" });
-// Task.belongsToMany(User, {
-//   through: "task_assignments",
-//   foreignKey: "taskId",
-//   otherKey: "userId",
-//   as: "assignedUsers",
-// });
-// User.belongsToMany(Task, {
-//   through: "task_assignments",
-//   foreignKey: "userId",
-//   otherKey: "taskId",
-//   as: "assignedTasks",
-// });
+Task.hasMany(ChecklistItem, {foreignKey: "taskId", as: "checklistItems", onDelete: "CASCADE"});
+ChecklistItem.belongsTo(Task, {foreignKey: "taskId", as: "task"});
 
 app.use((error, req, res, next) => {
   console.error(error);

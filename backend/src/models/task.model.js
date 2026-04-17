@@ -40,6 +40,10 @@ class Task extends Model {}
         type: DataTypes.DATEONLY,
         allowNull: true,
       },
+      startDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       sequelize,

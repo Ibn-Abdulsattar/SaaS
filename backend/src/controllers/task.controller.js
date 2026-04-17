@@ -3,8 +3,9 @@ import { Project } from "../models/project.model.js";
 import ExpressError from "../utils/expressError.js";
 import { logActivity } from "../services/logActivity.js";
 import { Op } from "sequelize";
-import UserChecklistItem from "../models/userChecklist.model.js";
+import UserChecklistItem from "../models/checklistItem.model.js";
 import { User } from "../models/user.model.js";
+import ChecklistItem from "../models/checklistItem.model.js";
 
 export const createTask = async (req, res, next) => {
   const { projectId } = req.params;
@@ -160,13 +161,14 @@ export const getTaskById = async (req, res, next) => {
 
   const task = await Task.findOne({
     where: { id, project_id: projectId },
-    include: [{ model: Project, as: "project" }],
+    include: [{ model: Project, as: "project" },
+      {model: ChecklistItem, as: "checklistItems"}
+    ],
   });
 
   if (!task) {
     return next(new ExpressError("Task not found", 404));
   }
-
   res.status(200).json({ success: true, data: task });
 };
 
@@ -178,7 +180,7 @@ export const updateTask = async (req, res, next) => {
     return next(new ExpressError("Task not found", 404));
   }
 
-  const { title, description, assigned_to, status, priority, due_date } =
+  const { title, description, assigned_to, status, priority, due_date, startDate } =
     req.body;
 
   await task.update({
@@ -188,6 +190,7 @@ export const updateTask = async (req, res, next) => {
     status,
     priority,
     due_date,
+    startDate: startDate ?? null,
   });
 
   await logActivity(req.user.user_id, "Updated", "Task", id);
@@ -216,6 +219,31 @@ export const deleteTask = async (req, res, next) => {
     message: "Task deleted successfully",
   });
 };
+
+export const changeTaskStatus = async(req, res, next)=>{
+  const { projectId, id } = req.params;
+
+  const task = await Task.findOne({ where: { id, project_id: projectId } });
+  if (!task) {
+    return next(new ExpressError("Task not found", 404));
+  }
+
+  const { status,startDate } =
+    req.body;
+
+      await task.update({
+    status,
+    startDate: startDate ?? null,
+  });
+
+  await logActivity(req.user.user_id, "Updated", "Task", id);
+
+  res.status(200).json({
+    success: true,
+    message: "Task updated successfully",
+    data: task,
+  });
+}
 
 export const getFilteredTasks = async (req, res, next) => {
   const {
@@ -275,15 +303,3 @@ export const getFilteredTasks = async (req, res, next) => {
   });
 };
 
-export const toggleChecklistItem = async (req, res) => {
-  const { id: taskId, itemId } = req.params;
-
-  const item = await UserChecklistItem.findOne({
-    where: { id: itemId, userId: req.user.user_id, taskId: taskId },
-  });
-
-  item.isCompleted = !item.isCompleted;
-  await item.save();
-
-  res.status(200).json({ success: true, item });
-};
