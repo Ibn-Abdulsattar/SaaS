@@ -21,7 +21,6 @@ export const createProject = async (req, res, next) => {
       const result = await Cloudinary(file);
 
       pdf = result.secure_url;
-      console.log("pdf_url =", result.secure_url);
     } catch (err) {
       return next(new ExpressError("pdf upload failed", 500));
     }
@@ -76,8 +75,8 @@ export const updateProject = async (req, res, next) => {
     return next(new ExpressError("Project not found", 404));
   }
 
-  const { title, description } = req.body;
-  await project.update({ title, description });
+  const { title, description, deadline  } = req.body;
+  await project.update({ title, description, deadline  });
 
   await logActivity(req.user.user_id, "Updated", "Project", project.id);
 

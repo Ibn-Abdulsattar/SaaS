@@ -6,6 +6,7 @@ import { Op } from "sequelize";
 import UserChecklistItem from "../models/checklistItem.model.js";
 import { User } from "../models/user.model.js";
 import ChecklistItem from "../models/checklistItem.model.js";
+import { publishEvent } from "../events/publisher.js";
 
 export const createTask = async (req, res, next) => {
   const { projectId } = req.params;
@@ -62,6 +63,11 @@ export const createTask = async (req, res, next) => {
     await UserChecklistItem.bulkCreate(checklistEntries);
   }
 
+  await publishEvent("TASK_CREATED", { 
+  ...task.toJSON(), 
+  projectId: task.project_id
+});
+
   await logActivity(req.user.user_id, "Created", "Task", task.id);
 
   res.status(201).json({
@@ -70,41 +76,6 @@ export const createTask = async (req, res, next) => {
     data: task,
   });
 };
-
-// export const getTasksByProject = async (req, res, next) => {
-//   const { projectId } = req.params;
-//   const { status, priority } = req.query;
-
-//   const project = await Project.findByPk(projectId);
-//   if (!project) {
-//     return next(new ExpressError("Project not found", 404));
-//   }
-
-//   const where = { project_id: projectId };
-//   if (status) where.status = status;
-//   if (priority) where.priority = priority;
-
-//   const { count, rows: tasks } = await Task.findAndCountAll({
-//     where,
-//     order: [["created_at", "DESC"]],
-//   });
-
-//   const todayDate = new Date();
-
-//   const updatedTasks = tasks.map((task) => {
-//     const isOverDue =
-//       new Date(task.due_date) < todayDate && task.status !== "compeleted";
-//     task.isOverDue = isOverDue;
-
-//     return task;
-//   });
-
-//   res.status(200).json({
-//     success: true,
-//     total: count,
-//     data: updatedTasks,
-//   });
-// };
 
 export const getTasksByProject = async (req, res, next) => {
   const { projectId } = req.params;
@@ -195,6 +166,11 @@ export const updateTask = async (req, res, next) => {
 
   await logActivity(req.user.user_id, "Updated", "Task", id);
 
+  await publishEvent("TASK_UPDATED", { 
+  ...task.toJSON(), 
+  projectId: task.project_id 
+});
+
   res.status(200).json({
     success: true,
     message: "Task updated successfully",
@@ -212,7 +188,7 @@ export const deleteTask = async (req, res, next) => {
 
   await task.destroy();
 
-  await logActivity(req.user.user_id, "Delated", "Task", id);
+  await logActivity(req.user.user_id, "Deleted", "Task", id);
 
   res.status(200).json({
     success: true,
@@ -237,6 +213,11 @@ export const changeTaskStatus = async(req, res, next)=>{
   });
 
   await logActivity(req.user.user_id, "Updated", "Task", id);
+
+   await publishEvent("TASK_STATUS_CHANGED", { 
+  ...task.toJSON(), 
+  projectId: task.project_id 
+});
 
   res.status(200).json({
     success: true,
@@ -269,7 +250,7 @@ export const getFilteredTasks = async (req, res, next) => {
     whereClause.created_at = {
       [Op.between]: [
         new Date(startDate),
-        new Date(endDate).setHours(23 * 59 * 59 * 999),
+        new Date(endDate).setHours(23 , 59 , 59 , 999),
       ],
     };
   }

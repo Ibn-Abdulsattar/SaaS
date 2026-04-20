@@ -1,3 +1,4 @@
+import { publishEvent } from "../events/publisher.js";
 import { Team } from "../models/team.model.js";
 import { TeamMembers } from "../models/teamMembers.model.js";
 import { User } from "../models/user.model.js";
@@ -32,13 +33,19 @@ export const addMembersToTeam = async (req, res, next) => {
   if (!team) {
     return next(new ExpressError("Team not found!", 404));
   }
-console.log("userIsds", userIds);
-  await TeamMembers.bulkCreate(
+
+  const members = await TeamMembers.bulkCreate(
     userIds.map((userId) => ({
       teamId,
       userId,
     })),
   );
+
+
+  await publishEvent("TEAM_MEMBER_ADDED", {
+    teamId,
+    members,
+  });
 
   return res
     .status(200)
@@ -62,18 +69,20 @@ export const getAllMembersOfTeam = async (req, res, next) => {
       as: "user",
     },
   });
-  console.log(members);
+  
   res.status(200).json({ members: members });
 };
 
-export const getAllTeams = async(req, res, next)=>{
+export const getAllTeams = async (req, res, next) => {
   const teams = await Team.findAll({
-    include:[
+    include: [
       {
         model: User,
-        as: "users", attributes: ["user_id", "username", "email"]} 
-    ]
-  })
+        as: "users",
+        attributes: ["user_id", "username", "email"],
+      },
+    ],
+  });
 
-  return res.status(200).json({teams});
-}
+  return res.status(200).json({ teams });
+};

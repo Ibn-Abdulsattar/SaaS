@@ -8,13 +8,13 @@ import RegisterPage from '../pages/Auth/RegisterPage';
 import ForgotPasswordPage from '../pages/Auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/Auth/ResetPasswordPage';
 import DashboardPage from '../pages/DashboardPage';
-import ProjectsPage from '../pages/ProjectsPage';
-import ProjectDetailPage from '../pages/ProjectDetailPage';
-import TasksPage from '../pages/TasksPage';
+import ProjectDetailPage from '../pages/project-detail/ProjectDetailPage';
 import BillingPage from '../pages/BillingPage';
 import ProfilePage from '../pages/ProfilePage';
 import SearchPage from '../pages/SearchPage';
-import TeamPage from '../pages/TeamPage';
+import TeamPage from '../pages/teams/TeamPage';
+import TaskPage from '../pages/tasks/TaskPage';
+import ProjectPage from '../pages/projects/ProjectPage';
 
 const AppRoutes = () => {
   const { isAuthenticated } = useSelector(state => state.auth);
@@ -44,10 +44,10 @@ const AppRoutes = () => {
       >
         <Route index element={<Navigate to="/dashboard" />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="projects" element={<ProjectPage />} />
         <Route path="projects/:id" element={<ProjectDetailPage />} />
         <Route path="team" element={<TeamPage />} />
-        <Route path="tasks" element={<TasksPage />} />
+        <Route path="tasks" element={<TaskPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="search" element={<SearchPage />} />
