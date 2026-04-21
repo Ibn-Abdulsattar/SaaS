@@ -28,7 +28,7 @@ router
     validateRequest("Task"),
     wrapAsync(createTask),
   )
-  .get(auth(["admin", "manager"]), wrapAsync(getTasksByProject));
+  .get(auth(["user","admin", "manager"]), wrapAsync(getTasksByProject));
 router
   .route("/:id")
   .get(auth(["user","admin", "manager"]), wrapAsync(getTaskById))

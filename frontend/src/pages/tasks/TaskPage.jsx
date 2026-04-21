@@ -31,7 +31,7 @@ export default function TaskPage() {
     openDetail,
     handleToggleChecklist,
   } = useTaskPage();
-
+  
   return (
     <div
       style={{

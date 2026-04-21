@@ -63,10 +63,10 @@ export const createTask = async (req, res, next) => {
     await UserChecklistItem.bulkCreate(checklistEntries);
   }
 
-  await publishEvent("TASK_CREATED", { 
-  ...task.toJSON(), 
-  projectId: task.project_id
-});
+  await publishEvent("TASK_CREATED", {
+    ...task.toJSON(),
+    projectId: task.project_id,
+  });
 
   await logActivity(req.user.user_id, "Created", "Task", task.id);
 
@@ -132,8 +132,9 @@ export const getTaskById = async (req, res, next) => {
 
   const task = await Task.findOne({
     where: { id, project_id: projectId },
-    include: [{ model: Project, as: "project" },
-      {model: ChecklistItem, as: "checklistItems"}
+    include: [
+      { model: Project, as: "project" },
+      { model: ChecklistItem, as: "checklistItems" },
     ],
   });
 
@@ -151,8 +152,15 @@ export const updateTask = async (req, res, next) => {
     return next(new ExpressError("Task not found", 404));
   }
 
-  const { title, description, assigned_to, status, priority, due_date, startDate } =
-    req.body;
+  const {
+    title,
+    description,
+    assigned_to,
+    status,
+    priority,
+    due_date,
+    startDate,
+  } = req.body;
 
   await task.update({
     title,
@@ -163,13 +171,14 @@ export const updateTask = async (req, res, next) => {
     due_date,
     startDate: startDate ?? null,
   });
+  await task.reload();
 
   await logActivity(req.user.user_id, "Updated", "Task", id);
 
-  await publishEvent("TASK_UPDATED", { 
-  ...task.toJSON(), 
-  projectId: task.project_id 
-});
+  await publishEvent("TASK_UPDATED", {
+    ...task.toJSON(),
+    projectId: task.project_id,
+  });
 
   res.status(200).json({
     success: true,
@@ -190,13 +199,18 @@ export const deleteTask = async (req, res, next) => {
 
   await logActivity(req.user.user_id, "Deleted", "Task", id);
 
+    await publishEvent("TASK_DELETED", {
+    ...task.toJSON(),
+    projectId: task.project_id,
+  });
+
   res.status(200).json({
     success: true,
     message: "Task deleted successfully",
   });
 };
 
-export const changeTaskStatus = async(req, res, next)=>{
+export const changeTaskStatus = async (req, res, next) => {
   const { projectId, id } = req.params;
 
   const task = await Task.findOne({ where: { id, project_id: projectId } });
@@ -204,27 +218,26 @@ export const changeTaskStatus = async(req, res, next)=>{
     return next(new ExpressError("Task not found", 404));
   }
 
-  const { status,startDate } =
-    req.body;
+  const { status, startDate } = req.body;
 
-      await task.update({
+  await task.update({
     status,
     startDate: startDate ?? null,
   });
 
   await logActivity(req.user.user_id, "Updated", "Task", id);
 
-   await publishEvent("TASK_STATUS_CHANGED", { 
-  ...task.toJSON(), 
-  projectId: task.project_id 
-});
+  await publishEvent("TASK_STATUS_CHANGED", {
+    ...task.toJSON(),
+    projectId: task.project_id,
+  });
 
   res.status(200).json({
     success: true,
     message: "Task updated successfully",
     data: task,
   });
-}
+};
 
 export const getFilteredTasks = async (req, res, next) => {
   const {
@@ -250,7 +263,7 @@ export const getFilteredTasks = async (req, res, next) => {
     whereClause.created_at = {
       [Op.between]: [
         new Date(startDate),
-        new Date(endDate).setHours(23 , 59 , 59 , 999),
+        new Date(endDate).setHours(23, 59, 59, 999),
       ],
     };
   }
@@ -283,4 +296,3 @@ export const getFilteredTasks = async (req, res, next) => {
     totalPages: Math.ceil(count / limit),
   });
 };
-

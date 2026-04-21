@@ -55,37 +55,43 @@ export function useTaskPage() {
   }, [dispatch, manage]);
 
   // ── Socket
-  useEffect(() => {
-    if (!projectId) return;
-
+useEffect(() => {
+  if (projectId) {
     socket.emit("join_project", projectId);
+  } else if (user?.user_id) {
+    socket.emit("join_user", user.user_id);
+  }
 
-    socket.on("TASK_CREATED", (task) => {
-      if ((task.projectId ?? task.project_id) !== projectId) return;
-      setTasks((prev) => [...prev, task]);
-    });
+  socket.on("TASK_CREATED", (task) => {
+    if (projectId && (task.projectId ?? task.project_id) !== projectId) return;
+    setTasks((prev) => [...prev, task]);
+  });
 
-    socket.on("TASK_UPDATED", (updatedTask) => {
-      if ((updatedTask.projectId ?? updatedTask.project_id) !== projectId)
-        return;
-      setTasks((prev) =>
-        prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-      );
-    });
+  socket.on("TASK_UPDATED", (updatedTask) => {
+    if (projectId && (updatedTask.projectId ?? updatedTask.project_id) !== projectId) return;
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
+    );
+  });
 
-    socket.on("TASK_STATUS_CHANGED", (task) => {
-      if ((task.projectId ?? task.project_id) !== projectId) return;
-      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
-    });
+  socket.on("TASK_STATUS_CHANGED", (task) => {
+    if (projectId && (task.projectId ?? task.project_id) !== projectId) return;
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+  });
 
-    return () => {
-      socket.off("TASK_CREATED");
-      socket.off("TASK_UPDATED");
-      socket.off("TASK_STATUS_CHANGED");
-    };
-  }, [projectId]);
+  socket.on("TASK_DELETED", (data) => {
+    if (projectId && data.projectId !== projectId) return;
+    setTasks((prev) => prev.filter((t) => t.id !== data.id));
+  });
 
-  // ── CRUD handlers
+  return () => {
+    socket.off("TASK_CREATED");
+    socket.off("TASK_UPDATED");
+    socket.off("TASK_STATUS_CHANGED");
+    socket.off("TASK_DELETED");
+  };
+}, [projectId, user?.user_id]);
+
   const handleCreate = async (form) => {
     try {
       await axios.post(`${API_URL}/project/${projectId}/tasks`, form, {
@@ -149,7 +155,6 @@ export function useTaskPage() {
 
   const handleStartTask = (task) => handleStatusChange(task, "in_progress");
 
-  // ── Detail / checklist
   const openDetail = async (task) => {
     setDetailTask(task);
     try {
