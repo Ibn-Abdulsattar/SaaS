@@ -51,7 +51,7 @@ export function useProjectPage() {
     dispatch(fetchProjects());
   }, [dispatch]);
 
-  // ── Handlers 
+  //  Handlers 
   const handleCreate = async () => {
     if (!newProject.title.trim()) return toast.error("Title is required");
     try {

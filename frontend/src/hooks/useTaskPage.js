@@ -25,7 +25,7 @@ export function useTaskPage() {
   const [detailTask, setDetailTask] = useState(null);
   const [checklist, setChecklist] = useState([]);
 
-  // ── Data fetching
+  // Data fetching
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
@@ -54,7 +54,7 @@ export function useTaskPage() {
     if (manage) dispatch(allUsers());
   }, [dispatch, manage]);
 
-  // ── Socket
+  // Socket
 useEffect(() => {
   if (projectId) {
     socket.emit("join_project", projectId);

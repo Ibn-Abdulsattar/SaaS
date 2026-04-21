@@ -36,7 +36,7 @@ export function useProjectDetail() {
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [addingItem, setAddingItem] = useState(false);
 
-  // ── Data fetching
+  // Data fetching
   const fetchProjectData = async () => {
     try {
       const [projectRes, tasksRes] = await Promise.all([
@@ -55,7 +55,7 @@ export function useProjectDetail() {
 
   useEffect(() => { fetchProjectData(); }, [id]);
 
-  // ── Socket
+  // Socket
   useEffect(() => {
     if (!project?.id) return;
 
@@ -176,7 +176,7 @@ export function useProjectDetail() {
     }
   };
 
-  // ── Task row menu 
+  // Task row menu 
   const handleMenuOpen = (event, task) => {
     setAnchorEl(event.currentTarget);
     setSelectedTask(task);
@@ -187,7 +187,7 @@ export function useProjectDetail() {
     setSelectedTask(null);
   };
 
-  // ── Checklist
+  // Checklist
   const handleOpenChecklist = async (task) => {
     handleMenuClose();
     setChecklistTask(task);
