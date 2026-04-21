@@ -5,7 +5,6 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AppRoutes from './routes/AppRoutes';
 import { getCurrentUser } from './redux/slices/authSlice';
-
 function App() {
   const dispatch = useDispatch();
 
@@ -32,3 +31,4 @@ function App() {
 }
 
 export default App;
+// app
