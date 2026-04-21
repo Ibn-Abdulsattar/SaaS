@@ -1,27 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { register, clearError } from '../../redux/slices/authSlice';
-import { toast } from 'react-toastify';
-import CustomGoogleButton from './CustomGoogleButton';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
+import { register, clearError } from "../../redux/slices/authSlice";
+import { toast } from "react-toastify";
+import CustomGoogleButton from "./CustomGoogleButton";
 
 const RegisterPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useSelector(state => state.auth);
+  const { isLoading, error, isAuthenticated } = useSelector(
+    (state) => state.auth,
+  );
 
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
-  const [passwordError, setPasswordError] = useState('');
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
@@ -37,28 +39,39 @@ const RegisterPage = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    
-    if (e.target.name === 'confirmPassword' || e.target.name === 'password') {
-      if (e.target.name === 'confirmPassword' && formData.password !== e.target.value) {
-        setPasswordError('Passwords do not match');
-      } else if (e.target.name === 'password' && formData.confirmPassword && formData.confirmPassword !== e.target.value) {
-        setPasswordError('Passwords do not match');
+
+    if (e.target.name === "confirmPassword" || e.target.name === "password") {
+      if (
+        e.target.name === "confirmPassword" &&
+        formData.password !== e.target.value
+      ) {
+        setPasswordError("Passwords do not match");
+      } else if (
+        e.target.name === "password" &&
+        formData.confirmPassword &&
+        formData.confirmPassword !== e.target.value
+      ) {
+        setPasswordError("Passwords do not match");
       } else {
-        setPasswordError('');
+        setPasswordError("");
       }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error("Passwords do not match");
       return;
     }
 
     const { confirmPassword, ...registerData } = formData;
-    await dispatch(register(registerData));
+    const result = await dispatch(register(registerData));
+    if (result.meta.requestStatus === "fulfilled") {
+      toast.success("Account created! Please log in.");
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -72,7 +85,10 @@ const RegisterPage = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
                 User Name
               </label>
               <input
@@ -87,7 +103,10 @@ const RegisterPage = () => {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -102,7 +121,10 @@ const RegisterPage = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -117,7 +139,10 @@ const RegisterPage = () => {
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
@@ -127,7 +152,7 @@ const RegisterPage = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`input-field mt-1 ${passwordError ? 'border-red-500' : ''}`}
+                className={`input-field mt-1 ${passwordError ? "border-red-500" : ""}`}
                 placeholder="Confirm your password"
               />
               {passwordError && (
@@ -148,11 +173,11 @@ const RegisterPage = () => {
               disabled={isLoading || !!passwordError}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating account...' : 'Sign up'}
+              {isLoading ? "Creating account..." : "Sign up"}
             </button>
           </div>
         </form>
-        <CustomGoogleButton navigate={navigate}/>
+        <CustomGoogleButton navigate={navigate} />
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 import Stripe from "stripe";
 import assignFreePlan from "../utils/assignFreePlan.js";
 const stripe = new Stripe(stripeSecretKey);
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from "google-auth-library";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const register = async (req, res, next) => {
@@ -99,17 +99,17 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = async (req, res, next) => {
-  const user_id  = req.user.user_id;
+  const user_id = req.user.user_id;
 
   const user = await User.findByPk(user_id);
 
-    if (!user) {
+  if (!user) {
     return next(new ExpressError("Not authenticated", 401));
   }
-  
-    user.token = null;
-    user.token_updated_at = null;
-    await user.save();
+
+  user.token = null;
+  user.token_updated_at = null;
+  await user.save();
 
   res
     .clearCookie("token", {
@@ -178,7 +178,7 @@ export const resetPassword = async (req, res, next) => {
 
 export const changePassword = async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
-  const userId = req.user.user_id; 
+  const userId = req.user.user_id;
 
   const user = await User.findByPk(userId);
   if (!user) {
@@ -258,6 +258,13 @@ We’re excited to have you join our community.
   user.password = undefined;
 
   if (created) {
+        const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.username,
+    });
+    user.stripe_customer_id = customer.id;
+    await user.save();
+
     await assignFreePlan(user);
 
     await sendMail(user.email, "SaaS!", notification);
@@ -276,22 +283,32 @@ We’re excited to have you join our community.
   });
 };
 
-export const getAllUsers = async(req, res, next)=>{
+export const getAllUsers = async (req, res, next) => {
   const users = await User.findAll({
-    attributes: ["user_id", "username", "email", "avatar_url", "role", "created_at", "jobTitle"],
+    attributes: [
+      "user_id",
+      "username",
+      "email",
+      "avatar_url",
+      "role",
+      "created_at",
+      "jobTitle",
+    ],
     order: [["created_at", "DESC"]],
   });
 
   return res.status(200).json({ users });
-}
+};
 
-export const updateJobTitle = async(req, res, next)=>{
-  const {jobTitle} = req.body;
+export const updateJobTitle = async (req, res, next) => {
+  const { jobTitle } = req.body;
   const user = await User.findByPk(req.user.user_id);
-  if(!user){
+  if (!user) {
     return next(new ExpressError("User not found", 404));
   }
 
-  user.update({jobTitle});
-  return res.status(200).json({message: "Job title updated successfully", jobTitle});
-}
+  await user.update({ jobTitle });
+  return res
+    .status(200)
+    .json({ message: "Job title updated successfully", jobTitle });
+};

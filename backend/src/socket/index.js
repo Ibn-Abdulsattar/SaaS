@@ -24,32 +24,32 @@ export const initSocket = (server) => {
     });
   });
 
-subClient.subscribe("TASK_CREATED", (message) => {
-  const data = JSON.parse(message);
+  subClient.subscribe("TASK_CREATED", (message) => {
+    const data = JSON.parse(message);
     io.to(`project_${data.projectId}`).emit("TASK_CREATED", data);
-  
-  (data.assigned_to || []).forEach((userId) => {
-    io.to(`user_${userId}`).emit("TASK_CREATED", data);
+
+    (data.assigned_to || []).forEach((userId) => {
+      io.to(`user_${userId}`).emit("TASK_CREATED", data);
+    });
   });
-});
 
-subClient.subscribe("TASK_UPDATED", (message) => {
-  const data = JSON.parse(message);
-  io.to(`project_${data.projectId}`).emit("TASK_UPDATED", data);
+  subClient.subscribe("TASK_UPDATED", (message) => {
+    const data = JSON.parse(message);
+    io.to(`project_${data.projectId}`).emit("TASK_UPDATED", data);
 
-  (data.assigned_to || []).forEach((userId) => {
-    io.to(`user_${userId}`).emit("TASK_UPDATED", data);
+    (data.assigned_to || []).forEach((userId) => {
+      io.to(`user_${userId}`).emit("TASK_UPDATED", data);
+    });
   });
-});
 
-subClient.subscribe("TASK_STATUS_CHANGED", (message) => {
-  const data = JSON.parse(message);
-  io.to(`project_${data.projectId}`).emit("TASK_STATUS_CHANGED", data);
+  subClient.subscribe("TASK_STATUS_CHANGED", (message) => {
+    const data = JSON.parse(message);
+    io.to(`project_${data.projectId}`).emit("TASK_STATUS_CHANGED", data);
 
-  (data.assigned_to || []).forEach((userId) => {
-    io.to(`user_${userId}`).emit("TASK_STATUS_CHANGED", data);
+    (data.assigned_to || []).forEach((userId) => {
+      io.to(`user_${userId}`).emit("TASK_STATUS_CHANGED", data);
+    });
   });
-});
 
   subClient.subscribe("TEAM_MEMBER_ADDED", (message) => {
     const data = JSON.parse(message);

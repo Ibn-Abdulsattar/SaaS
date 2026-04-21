@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { login, clearError } from '../../redux/slices/authSlice';
-import { toast } from 'react-toastify';
-import CustomGoogleButton from './CustomGoogleButton';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
+import { login, clearError } from "../../redux/slices/authSlice";
+import { toast } from "react-toastify";
+import CustomGoogleButton from "./CustomGoogleButton";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useSelector(state => state.auth);
+  const { isLoading, error, isAuthenticated } = useSelector(
+    (state) => state.auth,
+  );
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
@@ -37,7 +39,13 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(login(formData));
+    const result = await dispatch(login(formData));
+    if (result) {
+      if (result.meta.requestStatus === "fulfilled") {
+        toast.success("Account created! Please log in.");
+        navigate("/dashboard");
+      }
+    }
   };
 
   return (
@@ -51,7 +59,10 @@ const LoginPage = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -66,7 +77,10 @@ const LoginPage = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -84,12 +98,18 @@ const LoginPage = () => {
 
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <Link to="/forgot-password" className="text-blue-600 hover:text-blue-500">
+              <Link
+                to="/forgot-password"
+                className="text-blue-600 hover:text-blue-500"
+              >
                 Forgot your password?
               </Link>
             </div>
             <div className="text-sm">
-              <Link to="/register" className="text-blue-600 hover:text-blue-500">
+              <Link
+                to="/register"
+                className="text-blue-600 hover:text-blue-500"
+              >
                 Create new account
               </Link>
             </div>
@@ -101,11 +121,11 @@ const LoginPage = () => {
               disabled={isLoading}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
-          <CustomGoogleButton navigate={navigate} />
+        <CustomGoogleButton navigate={navigate} />
       </div>
     </div>
   );
