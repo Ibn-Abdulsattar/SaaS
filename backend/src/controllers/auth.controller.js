@@ -152,7 +152,7 @@ export const forgot = async (req, res, next) => {
 };
 
 export const resetPassword = async (req, res, next) => {
-  const { resetToken } = req.params;
+  const { resetToken } = req.body;
   const { password } = req.body;
 
   const resetPasswordToken = crypto

@@ -51,6 +51,15 @@ export const initSocket = (server) => {
     });
   });
 
+  subClient.subscribe("TASK_DELETED", (message) => {
+    const data = JSON.parse(message);
+    io.to(`project_${data.projectId}`).emit("TASK_DELETED", data);
+
+    (data.assigned_to || []).forEach((userId) => {
+      io.to(`user_${userId}`).emit("TASK_DELETED", data);
+    });
+  });
+
   subClient.subscribe("TEAM_MEMBER_ADDED", (message) => {
     const data = JSON.parse(message);
     io.to(`project_${data.teamId}`).emit("TEAM_MEMBER_ADDED", data);

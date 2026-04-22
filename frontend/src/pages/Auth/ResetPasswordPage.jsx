@@ -1,28 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate, useParams,  } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const ResetPasswordPage = () => {
-  const [searchParams] = useSearchParams();
+  const {resetToken} = useParams();
   const navigate = useNavigate();
-  const token = searchParams.get('token');
-
+  
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [passwordError, setPasswordError] = useState('');
-
-  useEffect(() => {
-    if (!token) {
-      toast.error('Invalid reset link');
-      navigate('/forgot-password');
-    }
-  }, [token, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -53,14 +45,15 @@ const ResetPasswordPage = () => {
 
     try {
       await axios.post(`${API_URL}/auth/reset-password`, {
-        token,
+        resetToken,
         password: formData.password,
       });
       
       toast.success('Password reset successful! Please login with your new password.');
-      navigate('/login');
+      navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to reset password');
+      console.log(error.response?.data?.error)
+      toast.error(error.response?.data?.error || 'Failed to reset password');
     } finally {
       setIsLoading(false);
     }

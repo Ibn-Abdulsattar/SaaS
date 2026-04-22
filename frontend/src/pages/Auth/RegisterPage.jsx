@@ -69,7 +69,7 @@ const RegisterPage = () => {
     const { confirmPassword, ...registerData } = formData;
     const result = await dispatch(register(registerData));
     if (result.meta.requestStatus === "fulfilled") {
-      toast.success("Account created! Please log in.");
+      toast.success("Account created successfully!");
       navigate("/dashboard");
     }
   };

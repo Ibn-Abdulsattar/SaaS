@@ -76,10 +76,16 @@ export function useProjectDetail() {
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
     });
 
+      socket.on("TASK_DELETED", (task) => {
+      if ((task.projectId ?? task.project_id) !== project.id) return;
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+  });
+
     return () => {
       socket.off("TASK_CREATED");
       socket.off("TASK_UPDATED");
       socket.off("TASK_STATUS_CHANGED");
+    socket.off("TASK_DELETED");
     };
   }, [project?.id]);
 

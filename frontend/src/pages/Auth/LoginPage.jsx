@@ -42,7 +42,7 @@ const LoginPage = () => {
     const result = await dispatch(login(formData));
     if (result) {
       if (result.meta.requestStatus === "fulfilled") {
-        toast.success("Account created! Please log in.");
+        toast.success("Welcome back!");
         navigate("/dashboard");
       }
     }

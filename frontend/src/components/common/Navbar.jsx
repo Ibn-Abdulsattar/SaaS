@@ -11,11 +11,11 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
-  const { sidebarOpen } = useSelector(state => state.ui);
+  // const { sidebarOpen } = useSelector(state => state.ui);
 
   const handleLogout = async () => {
     await dispatch(logout());
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -41,7 +41,7 @@ const Navbar = () => {
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="p-2 rounded-md text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-100"
             >
               <LogoutIcon />
             </button>

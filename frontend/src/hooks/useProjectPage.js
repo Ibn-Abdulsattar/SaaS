@@ -13,7 +13,6 @@ import {
 } from "../redux/slices/projectSlice";
 import { getAllTeams } from "../redux/slices/teamSlice";
 
-
 export function useProjectPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();

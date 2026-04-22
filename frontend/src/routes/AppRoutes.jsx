@@ -31,7 +31,7 @@ const AppRoutes = () => {
         element={isAuthenticated ? <Navigate to="/dashboard" /> : <RegisterPage />}
       />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path={`/reset-password/:resetToken`} element={<ResetPasswordPage />} />
       
       {/* Protected Routes */}
       <Route

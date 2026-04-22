@@ -16,7 +16,7 @@ export const login = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Login failed");
+      return rejectWithValue(error.response?.data?.error || "Login failed");
     }
   },
 );
@@ -31,7 +31,7 @@ export const allUsers = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch users",
+        error.response?.data?.error || "Failed to fetch users",
       );
     }
   },
@@ -50,7 +50,7 @@ export const updateJobTitle = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Login failed");
+      return rejectWithValue(error.response?.data?.error || "Login failed");
     }
   },
 );
@@ -65,7 +65,7 @@ export const register = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Registration failed",
+        error.response?.data?.error || "Registration failed",
       );
     }
   },
@@ -84,7 +84,7 @@ export const getCurrentUser = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message);
+      return rejectWithValue(error.response?.data?.error);
     }
   },
 );
@@ -104,7 +104,7 @@ export const googleAuth = createAsyncThunk(
       return response.data.user;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Google Login Failed",
+        error.response?.data?.error || "Google Login Failed",
       );
     }
   },
